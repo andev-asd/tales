@@ -1,0 +1,214 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model auth_user {
+  id            String         @id
+  name          String
+  email         String         @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      auth_session[]
+  accounts      auth_account[]
+
+  @@map("auth_user")
+}
+
+model auth_session {
+  id        String    @id
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime
+  updatedAt DateTime
+  user      auth_user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_session")
+}
+
+model auth_account {
+  id                    String    @id
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  auth_user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_account")
+}
+
+model auth_verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("auth_verification")
+}
+
+enum UserRole {
+  CUSTOMER
+  PSYCHOLOGIST
+  ADMIN
+  SUPERADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum TaleAccessType {
+  FREE
+  PAID
+  PERSONALIZABLE
+}
+
+enum OrderType {
+  READY_TALE
+  PERSONALIZED_TEMPLATE
+  CUSTOM_PSYCHOLOGIST
+}
+
+enum OrderStatus {
+  NEW
+  IN_REVIEW
+  IN_PROGRESS
+  AWAITING_CUSTOMER
+  COMPLETED
+  CANCELLED
+}
+
+enum LibrarySource {
+  FREE_ADDED
+  PURCHASED
+  PERSONALIZED
+  CUSTOM
+}
+
+model User {
+  id                 String         @id @default(cuid())
+  name               String?
+  email              String         @unique
+  image              String?
+  role               UserRole       @default(CUSTOMER)
+  status             UserStatus     @default(ACTIVE)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  libraryItems       LibraryItem[]
+  customerOrders     Order[]        @relation("CustomerOrders")
+  psychologistOrders Order[]        @relation("PsychologistOrders")
+  messages           OrderMessage[]
+}
+
+model Tale {
+  id                   String          @id @default(cuid())
+  title                String
+  slug                 String          @unique
+  shortDescription     String
+  fullDescription      String
+  accessType           TaleAccessType
+  price                Int?
+  personalizationPrice Int?
+  published            Boolean         @default(false)
+  coverPath            String?
+  galleryPaths         Json?
+  pdfPath              String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  categories           TaleCategory[]
+  orders               Order[]
+  libraryItems         LibraryItem[]
+}
+
+model Category {
+  id        String         @id @default(cuid())
+  name      String
+  slug      String         @unique
+  tales     TaleCategory[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model TaleCategory {
+  taleId     String
+  categoryId String
+  tale       Tale     @relation(fields: [taleId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([taleId, categoryId])
+}
+
+model Order {
+  id             String         @id @default(cuid())
+  type           OrderType
+  status         OrderStatus    @default(NEW)
+  finalPrice     Int?
+  childName      String?
+  brief          String?
+  resultTitle    String?
+  resultBody     String?
+  customerId     String
+  psychologistId String?
+  taleId         String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  customer       User           @relation("CustomerOrders", fields: [customerId], references: [id])
+  psychologist   User?          @relation("PsychologistOrders", fields: [psychologistId], references: [id])
+  tale           Tale?          @relation(fields: [taleId], references: [id])
+  messages       OrderMessage[]
+  libraryItems   LibraryItem[]
+}
+
+model OrderMessage {
+  id        String   @id @default(cuid())
+  orderId   String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model LibraryItem {
+  id        String        @id @default(cuid())
+  userId    String
+  taleId    String
+  orderId   String?
+  source    LibrarySource
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tale      Tale          @relation(fields: [taleId], references: [id], onDelete: Cascade)
+  order     Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, taleId, source])
+}
+
+model DownloadToken {
+  id            String   @id @default(cuid())
+  libraryItemId String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+}
