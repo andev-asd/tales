@@ -1,22 +1,20 @@
-import { Card } from '@/src/components/ui/card';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 export function ProductPaths() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <h3 className="font-display text-3xl text-app-text">Готові казки</h3>
-          <p className="mt-4 text-app-secondary">
-            Безкоштовні, платні та персоналізовані шаблонні історії з м’яким
-            терапевтичним ефектом.
-          </p>
-        </Card>
-        <Card>
-          <h3 className="font-display text-3xl text-app-text">Індивідуальна казка</h3>
-          <p className="mt-4 text-app-secondary">
-            Бриф, переписка та підготовка персональної казки разом із психологом.
-          </p>
-        </Card>
+    <section className="bg-[#fcfaf7]">
+      <div className="mx-auto max-w-7xl px-4 py-[72px] text-center md:px-8">
+        <h2 className="font-display text-[32px] font-semibold text-app-text">Оберіть формат</h2>
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/catalog"
+            className="inline-flex items-center gap-2 rounded-full bg-app-accent px-6 py-3 text-sm font-semibold text-white"
+          >
+            Переглянути каталог
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );

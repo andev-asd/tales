@@ -1,9 +1,17 @@
+import { BookOpen } from 'lucide-react';
+
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-app-border px-4 py-10 text-sm text-app-secondary md:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <span>Терапевтичні казки українською мовою.</span>
-        <span>М’який простір для батьків і дітей.</span>
+    <footer className="bg-[var(--fg-primary)] px-4 py-8 md:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 text-center">
+        <div className="flex items-center gap-2 text-white">
+          <BookOpen className="h-5 w-5 text-app-accent" />
+          <span className="font-display text-lg font-semibold">Своя Казка</span>
+        </div>
+        <p className="text-[13px] text-white/50">
+          Терапевтичні казки для дітей — з турботою та професійним підходом
+        </p>
+        <p className="text-xs text-white/30">© 2026 Своя Казка. Усі права захищені.</p>
       </div>
     </footer>
   );
