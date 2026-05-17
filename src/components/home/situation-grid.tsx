@@ -1,56 +1,19 @@
-import {
-  Cloud,
-  CloudLightning,
-  Compass,
-  Heart,
-  Moon,
-  Smile,
-  type LucideIcon,
-} from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { Cloud, CloudLightning, Compass, Heart, Moon, Smile } from 'lucide-react';
 
-const situations: Array<{
-  label: string;
-  icon: LucideIcon;
-  className: string;
-}> = [
-  {
-    label: 'Страхи',
-    icon: CloudLightning,
-    className: 'bg-[rgba(184,101,73,0.07)] text-app-accent',
-  },
-  {
-    label: 'Втрата',
-    icon: Heart,
-    className: 'bg-[rgba(122,144,113,0.07)] text-app-accentSecondary',
-  },
-  {
-    label: 'Адаптація',
-    icon: Compass,
-    className: 'bg-[rgba(47,64,88,0.07)] text-app-premium',
-  },
-  {
-    label: 'Сон',
-    icon: Moon,
-    className: 'bg-[rgba(123,107,149,0.07)] text-[#7b6b95]',
-  },
-  {
-    label: 'Тривожність',
-    icon: Cloud,
-    className: 'bg-[rgba(176,128,48,0.07)] text-[#b08030]',
-  },
-  {
-    label: 'Емоції',
-    icon: Smile,
-    className: 'bg-[rgba(196,87,64,0.07)] text-[#c45740]',
-  },
+const situations = [
+  { label: 'Страхи', Icon: CloudLightning, color: '#b86549', bg: '#b8654912' },
+  { label: 'Втрата', Icon: Heart, color: '#7a9071', bg: '#7a907112' },
+  { label: 'Адаптація', Icon: Compass, color: '#2f4058', bg: '#2f405812' },
+  { label: 'Сон', Icon: Moon, color: '#7b6b95', bg: '#9b8bb512' },
+  { label: 'Тривожність', Icon: Cloud, color: '#b08030', bg: '#c4932612' },
+  { label: 'Емоції', Icon: Smile, color: '#c45740', bg: '#c4572612' },
 ];
 
 export function SituationGrid() {
   return (
-    <section className="bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 py-[60px] text-center md:px-8">
-        <div className="space-y-3">
+    <section className="bg-app-elevated px-8 py-[60px]">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-8">
+        <div className="flex flex-col items-center gap-3 text-center">
           <h2 className="font-display text-[32px] font-semibold text-app-text">
             Для яких ситуацій підійдуть казки?
           </h2>
@@ -59,18 +22,18 @@ export function SituationGrid() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {situations.map(({ label, icon: Icon, className }) => (
-            <span
+        <div className="flex flex-wrap justify-center gap-3">
+          {situations.map(({ label, Icon, color, bg }) => (
+            <div
               key={label}
-              className={cn(
-                'inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium',
-                className,
-              )}
+              className="flex items-center gap-2 rounded-pill px-5 py-2.5"
+              style={{ backgroundColor: bg }}
             >
-              <Icon className="h-[18px] w-[18px]" />
-              {label}
-            </span>
+              <Icon className="h-[18px] w-[18px]" style={{ color }} />
+              <span className="text-[14px] font-medium" style={{ color }}>
+                {label}
+              </span>
+            </div>
           ))}
         </div>
       </div>

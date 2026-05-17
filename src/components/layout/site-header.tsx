@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Button } from '@/src/components/ui/button';
+import { BookOpen } from 'lucide-react';
 import { UserMenu } from './user-menu';
 
 type HeaderUser = {
@@ -10,19 +10,29 @@ type HeaderUser = {
 export function SiteHeader({ user }: { user: HeaderUser }) {
   return (
     <header className="sticky top-0 z-40 border-b border-app-border bg-[rgba(247,242,232,0.92)] backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 md:px-8">
-        <Link href="/" className="font-display text-2xl italic text-app-text">
-          Своя Казка
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-0" style={{ height: 72 }}>
+        <Link href="/" className="flex items-center gap-2.5">
+          <BookOpen className="h-7 w-7 text-app-accent" />
+          <span className="font-display text-[22px] font-semibold text-app-text">Своя Казка</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-app-secondary md:flex">
-          <Link href="/catalog">Каталог казок</Link>
-          <Link href="/custom-story">Індивідуальна казка</Link>
-          <Link href="/#how-it-works">Як це працює</Link>
-          <Link href="/faq">FAQ</Link>
+        <nav className="hidden items-center gap-8 md:flex">
+          <Link href="/catalog" className="text-[15px] font-medium text-app-secondary hover:text-app-text">Каталог</Link>
+          <Link href="/custom-story" className="text-[15px] font-medium text-app-secondary hover:text-app-text">Індивідуальна казка</Link>
+          <Link href="/#how-it-works" className="text-[15px] font-medium text-app-secondary hover:text-app-text">Як це працює</Link>
+          <Link href="/faq" className="text-[15px] font-medium text-app-secondary hover:text-app-text">FAQ</Link>
         </nav>
 
-        {user ? <UserMenu user={user} /> : <Link href="/login"><Button>Увійти</Button></Link>}
+        {user ? (
+          <UserMenu user={user} />
+        ) : (
+          <Link
+            href="/login"
+            className="rounded-pill border border-app-border bg-app-surface px-4 py-2.5 text-[15px] font-medium text-app-text shadow-sm"
+          >
+            Увійти
+          </Link>
+        )}
       </div>
     </header>
   );

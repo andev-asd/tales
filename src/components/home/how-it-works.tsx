@@ -1,66 +1,68 @@
-import { BookOpen, Download, UserCheck, type LucideIcon } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { BookOpen, Download, UserCheck } from 'lucide-react';
 
-const steps: Array<{
-  number: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  accentClassName: string;
-}> = [
+const steps = [
   {
-    number: '1',
+    num: '1',
+    numColor: '#b86549',
+    numBg: '#b8654915',
+    Icon: BookOpen,
+    iconColor: '#b86549',
     title: 'Оберіть казку',
-    description: 'Готову з каталогу або індивідуальний формат з психологинею',
-    icon: BookOpen,
-    accentClassName: 'bg-[rgba(184,101,73,0.08)] text-app-accent',
+    desc: 'Готову з каталогу або індивідуальний формат з психологинею',
   },
   {
-    number: '2',
+    num: '2',
+    numColor: '#7a9071',
+    numBg: '#7a907115',
+    Icon: UserCheck,
+    iconColor: '#7a9071',
     title: 'Авторизуйтесь',
-    description: 'Щоб зберегти казку у бібліотеку або оформити замовлення',
-    icon: UserCheck,
-    accentClassName: 'bg-[rgba(122,144,113,0.08)] text-app-accentSecondary',
+    desc: 'Щоб зберегти казку у бібліотеку або оформити замовлення',
   },
   {
-    number: '3',
+    num: '3',
+    numColor: '#2f4058',
+    numBg: '#2f405815',
+    Icon: Download,
+    iconColor: '#2f4058',
     title: 'Отримайте PDF',
-    description: 'Завантажте казку у вашому особистому кабінеті в будь-який зручний час',
-    icon: Download,
-    accentClassName: 'bg-[rgba(47,64,88,0.08)] text-app-premium',
+    desc: 'Завантажте казку у вашому особистому кабінеті в будь-який зручний час',
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 py-[72px] text-center md:px-8">
-        <div className="space-y-3">
-          <h2 className="font-display text-[32px] font-semibold text-app-text">Як це працює</h2>
-          <p className="text-base text-app-secondary">Три простих кроки до терапевтичної казки</p>
+    <section id="how-it-works" className="bg-app-elevated px-8 py-[72px]">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-12 flex flex-col items-center gap-3 text-center">
+          <h2 className="font-display text-[32px] font-semibold text-app-text">
+            Як це працює
+          </h2>
+          <p className="text-base text-app-secondary">
+            Три простих кроки до терапевтичної казки
+          </p>
         </div>
 
-        <ol className="grid w-full gap-8 lg:grid-cols-3">
-          {steps.map((step) => {
-            const Icon = step.icon;
-
-            return (
-              <li key={step.number} className="flex flex-col items-center gap-4 px-6 py-8 text-center">
-                <span
-                  className={cn(
-                    'flex h-12 w-12 items-center justify-center rounded-full font-display text-xl font-semibold',
-                    step.accentClassName,
-                  )}
-                >
-                  {step.number}
+        <div className="grid gap-8 md:grid-cols-3">
+          {steps.map(({ num, numColor, numBg, Icon, iconColor, title, desc }) => (
+            <div
+              key={num}
+              className="flex flex-col items-center gap-4 px-6 py-8 text-center"
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-pill"
+                style={{ backgroundColor: numBg }}
+              >
+                <span className="font-display text-xl font-semibold" style={{ color: numColor }}>
+                  {num}
                 </span>
-                <Icon className={cn('h-8 w-8', step.accentClassName.split(' ')[1])} />
-                <h3 className="font-display text-xl font-semibold text-app-text">{step.title}</h3>
-                <p className="text-sm leading-[1.6] text-app-secondary">{step.description}</p>
-              </li>
-            );
-          })}
-        </ol>
+              </div>
+              <Icon className="h-8 w-8" style={{ color: iconColor }} />
+              <h3 className="font-display text-xl font-semibold text-app-text">{title}</h3>
+              <p className="text-[14px] leading-[1.6] text-app-secondary">{desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
