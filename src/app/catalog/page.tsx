@@ -9,20 +9,22 @@ export const dynamic = 'force-dynamic';
 export default async function CatalogPage() {
   const tales = await getCatalogTales();
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
-      <div className="space-y-6">
-        <h1 className="font-display text-5xl text-app-text">Каталог казок</h1>
-        <p className="max-w-3xl text-lg leading-8 text-app-secondary">
-          Оберіть історію за ситуацією та форматом: безкоштовну, платну або з
-          можливістю персоналізації.
-        </p>
+    <section className="bg-app-bg">
+      <div className="mx-auto max-w-7xl px-4 pb-20 md:px-20">
+        <div className="flex flex-col items-center gap-3 pt-12 pb-8">
+          <h1 className="text-center font-display text-4xl font-semibold text-app-text">
+            Каталог казок
+          </h1>
+          <p className="max-w-3xl text-center text-base text-app-secondary">
+            Оберіть казку для вашої дитини за ситуацією
+          </p>
+        </div>
         <CatalogFilters />
-      </div>
-
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {tales.map((tale: CatalogTale) => (
-          <TaleCard key={tale.slug} tale={tale} />
-        ))}
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {tales.map((tale: CatalogTale) => (
+            <TaleCard key={tale.slug} tale={tale} />
+          ))}
+        </div>
       </div>
     </section>
   );

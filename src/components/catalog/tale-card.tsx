@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { Badge } from '@/src/components/ui/badge';
-import { Card } from '@/src/components/ui/card';
+import { ArrowRight } from 'lucide-react';
 
 type TaleCardProps = {
   tale: {
@@ -23,21 +22,45 @@ function accessLabel(accessType: TaleCardProps['tale']['accessType']) {
   }
 }
 
+function ctaLabel(accessType: TaleCardProps['tale']['accessType']) {
+  switch (accessType) {
+    case 'FREE':
+      return 'Читати';
+    case 'PAID':
+      return 'Придбати';
+    case 'PERSONALIZABLE':
+      return 'Персоналізувати';
+  }
+}
+
 export function TaleCard({ tale }: TaleCardProps) {
   return (
-    <Card>
+    <div className="overflow-hidden rounded-[20px] border border-[#e8dfd1] bg-white">
       {tale.coverUrl ? (
-        <img src={tale.coverUrl} alt={tale.title} className="h-56 w-full rounded-[var(--radius-md)] object-cover" />
+        <img
+          src={tale.coverUrl}
+          alt={tale.title}
+          className="h-[200px] w-full object-cover"
+        />
       ) : null}
-      <Badge>{accessLabel(tale.accessType)}</Badge>
-      <h3 className="mt-4 font-display text-2xl text-app-text">{tale.title}</h3>
-      <p className="mt-3 leading-7 text-app-secondary">{tale.shortDescription}</p>
-      <Link
-        href={`/tales/${tale.slug}`}
-        className="mt-5 inline-flex text-sm font-medium text-app-accent"
-      >
-        Детальніше
-      </Link>
-    </Card>
+      <div className="flex flex-col gap-2.5 px-6 py-5">
+        <span className="self-start rounded-full bg-app-accentSecondary/10 px-3 py-1 text-xs font-medium text-app-secondary">
+          {accessLabel(tale.accessType)}
+        </span>
+        <h3 className="font-display text-xl font-semibold text-app-text">
+          {tale.title}
+        </h3>
+        <p className="text-sm leading-relaxed text-app-secondary">
+          {tale.shortDescription}
+        </p>
+        <Link
+          href={`/tales/${tale.slug}`}
+          className="mt-1 flex items-center gap-1.5 self-start rounded-full bg-app-accent/10 px-5 py-2.5 text-sm font-semibold text-app-accent"
+        >
+          {ctaLabel(tale.accessType)}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </div>
   );
 }
