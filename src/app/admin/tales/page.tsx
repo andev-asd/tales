@@ -52,6 +52,9 @@ export default async function AdminTalesPage() {
                       {view.accessLabel} · {view.publishLabel}
                     </p>
                     <p className="text-sm text-app-secondary">
+                      Головна: {tale.publishOnHomepage ? 'Так' : 'Ні'} · Порядок: {tale.homepageOrder}
+                    </p>
+                    <p className="text-sm text-app-secondary">
                       Категорії: {categoryNames || 'Не вибрано'}
                     </p>
                   </div>

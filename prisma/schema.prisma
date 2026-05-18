@@ -133,6 +133,8 @@ model Tale {
   price                Int?
   personalizationPrice Int?
   published            Boolean         @default(false)
+  publishOnHomepage    Boolean         @default(false)
+  homepageOrder        Int             @default(0)
   coverPath            String?
   galleryPaths         Json?
   pdfPath              String?

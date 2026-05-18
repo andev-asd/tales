@@ -19,13 +19,11 @@ export function PdfUploadField({ name, taleId, defaultPath }: PdfUploadFieldProp
     formData.append('file', file);
     formData.append('kind', 'book');
     formData.append('action', action);
+
     if (path) {
-    formData.append('existingPath', path);
-    if (taleId) {
-      formData.append('taleId', taleId);
+      formData.append('existingPath', path);
     }
 
-    }
     if (taleId) {
       formData.append('taleId', taleId);
     }
@@ -53,6 +51,9 @@ export function PdfUploadField({ name, taleId, defaultPath }: PdfUploadFieldProp
     formData.append('kind', 'book');
     formData.append('action', 'delete');
     formData.append('existingPath', path);
+    if (taleId) {
+      formData.append('taleId', taleId);
+    }
     setStatus('Видалення...');
     const response = await fetch('/api/admin/assets', { method: 'POST', body: formData });
     if (!response.ok) {

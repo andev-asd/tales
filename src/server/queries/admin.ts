@@ -19,7 +19,7 @@ export async function getAdminTales() {
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ homepageOrder: 'asc' }, { createdAt: 'desc' }],
   });
 }
 

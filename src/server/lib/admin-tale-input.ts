@@ -18,6 +18,8 @@ export function normalizeTaleInput(input: {
   price: string;
   personalizationPrice: string;
   published: boolean;
+  publishOnHomepage: boolean;
+  homepageOrder: number;
   categoryIds: string[];
   galleryPaths?: string[];
   pdfPath?: string | null;
@@ -31,6 +33,8 @@ export function normalizeTaleInput(input: {
     price: normalizeTalePrice(input.price),
     personalizationPrice: normalizeTalePrice(input.personalizationPrice),
     published: input.published,
+    publishOnHomepage: input.publishOnHomepage,
+    homepageOrder: input.homepageOrder,
     categoryIds: input.categoryIds,
     galleryPaths: (input.galleryPaths ?? []).map((path) => path.trim()).filter(Boolean),
     pdfPath: input.pdfPath?.trim() ? input.pdfPath.trim() : null,

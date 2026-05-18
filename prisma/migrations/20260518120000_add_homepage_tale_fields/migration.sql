@@ -1,0 +1,3 @@
+ALTER TABLE "Tale"
+ADD COLUMN     "publishOnHomepage" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "homepageOrder" INTEGER NOT NULL DEFAULT 0;

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { TaleForm } from '@/src/components/forms/tale-form';
-import { updateTaleAction } from '@/src/server/actions/admin-tales';
+import { deleteTaleAction, updateTaleAction } from '@/src/server/actions/admin-tales';
 import { DashboardShell } from '@/src/components/layout/dashboard-shell';
 import { getAdminCategories } from '@/src/server/queries/admin';
 import { getAdminTaleDetail } from '@/src/server/queries/admin-tale-detail';
@@ -38,6 +38,7 @@ export default async function AdminEditTalePage({
         <h1 className="font-display text-4xl text-app-text">Редагування казки</h1>
         <TaleForm
           action={updateTaleAction.bind(null, tale.id)}
+          deleteAction={deleteTaleAction.bind(null, tale.id)}
           categories={categories}
           defaultValues={{
             title: tale.title,
@@ -48,6 +49,8 @@ export default async function AdminEditTalePage({
             price: tale.price,
             personalizationPrice: tale.personalizationPrice,
             published: tale.published,
+            publishOnHomepage: tale.publishOnHomepage,
+            homepageOrder: tale.homepageOrder,
             categoryIds: tale.categories.map((item: AdminTaleDetail['categories'][number]) => item.categoryId),
             imagePaths: tale.imagePaths,
             imagePreviewUrls: tale.imagePreviewUrls,
