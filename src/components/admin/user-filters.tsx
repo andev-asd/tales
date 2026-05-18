@@ -1,11 +1,13 @@
 type AdminUserFiltersProps = {
   selectedRole: string;
   selectedStatus: string;
+  actorRole: 'ADMIN' | 'SUPERADMIN';
 };
 
 export function AdminUserFilters({
   selectedRole,
   selectedStatus,
+  actorRole,
 }: AdminUserFiltersProps) {
   return (
     <form
@@ -22,6 +24,8 @@ export function AdminUserFilters({
           <option value="ALL">Усі ролі</option>
           <option value="CUSTOMER">Користувачі</option>
           <option value="PSYCHOLOGIST">Психологи</option>
+          {actorRole === 'SUPERADMIN' ? <option value="ADMIN">Адміни</option> : null}
+          {actorRole === 'SUPERADMIN' ? <option value="SUPERADMIN">Суперадміни</option> : null}
         </select>
       </label>
 

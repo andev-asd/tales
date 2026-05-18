@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { AdminUserManagementTable } from '@/src/components/admin/user-management-table';
+import { UserManagementTable } from '@/src/components/superadmin/user-management-table';
 
-describe('AdminUserManagementTable', () => {
-  it('renders only admin-manageable roles and statuses', () => {
+describe('UserManagementTable', () => {
+  it('renders admin-manageable roles and statuses', () => {
     render(
-      <AdminUserManagementTable
+      <UserManagementTable
         actorRole="ADMIN"
         users={[
           {
@@ -23,12 +23,31 @@ describe('AdminUserManagementTable', () => {
     expect(screen.getByText('Ірина')).toBeInTheDocument();
     expect(screen.getAllByText('Психолог').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Активний').length).toBeGreaterThan(0);
-
   });
 
   it('renders empty state when no users are available', () => {
-    render(<AdminUserManagementTable actorRole="ADMIN" users={[]} />);
+    render(<UserManagementTable actorRole="ADMIN" users={[]} />);
 
     expect(screen.getByText('Користувачів не знайдено')).toBeInTheDocument();
+  });
+
+  it('renders superadmin role options for superadmin actor', () => {
+    render(
+      <UserManagementTable
+        actorRole="SUPERADMIN"
+        users={[
+          {
+            id: 'user-2',
+            name: 'Олег',
+            email: 'oleg@example.com',
+            role: 'ADMIN',
+            status: 'ACTIVE',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('option', { name: 'Адмін' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Суперадмін' })).toBeInTheDocument();
   });
 });

@@ -51,13 +51,10 @@ export function UserMenu({ user }: UserMenuProps) {
   };
 
   const roleLinks = [
-    user.role === 'SUPERADMIN'
-      ? { href: '/superadmin', label: 'Суперадмінка' }
-      : null,
     user.role === 'ADMIN' || user.role === 'SUPERADMIN'
       ? { href: '/admin', label: 'Адмінка' }
       : null,
-    user.role === 'PSYCHOLOGIST' || user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+    user.role === 'PSYCHOLOGIST'
       ? { href: '/psychologist', label: 'Кабінет психолога' }
       : null,
   ].filter(Boolean) as Array<{ href: string; label: string }>;
