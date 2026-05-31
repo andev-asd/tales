@@ -1,5 +1,6 @@
 import type { UserRole } from '@/src/lib/user-types';
 import { getManageableRoleOptions, getUserRoleLabel } from '@/src/lib/user-access';
+import { updateAdminUserRoleAction } from '@/src/server/actions/admin-users';
 
 type AdminUserRoleFormProps = {
   userId: string;
@@ -13,7 +14,7 @@ export function AdminUserRoleForm({
   const options = getManageableRoleOptions('ADMIN');
 
   return (
-    <form className="grid gap-2 rounded-[var(--radius-lg)] border border-app-border p-4">
+    <form action={updateAdminUserRoleAction} className="grid gap-2 rounded-[var(--radius-lg)] border border-app-border p-4">
       <input type="hidden" name="userId" value={userId} />
       <label className="text-sm text-app-secondary" htmlFor={`admin-role-${userId}`}>
         Роль

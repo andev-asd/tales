@@ -1,5 +1,6 @@
 import type { UserStatus } from '@/src/lib/user-types';
 import { getUserStatusLabel } from '@/src/lib/user-access';
+import { updateAdminUserStatusAction } from '@/src/server/actions/admin-users';
 
 type AdminUserStatusFormProps = {
   userId: string;
@@ -13,7 +14,7 @@ export function AdminUserStatusForm({
   const nextStatus = currentStatus === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
 
   return (
-    <form className="grid gap-2 rounded-[var(--radius-lg)] border border-app-border p-4">
+    <form action={updateAdminUserStatusAction} className="grid gap-2 rounded-[var(--radius-lg)] border border-app-border p-4">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="status" value={nextStatus} />
       <p className="text-sm text-app-secondary">

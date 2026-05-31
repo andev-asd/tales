@@ -1,6 +1,6 @@
 import { DashboardShell } from '@/src/components/layout/dashboard-shell';
 import { AdminUserFilters } from '@/src/components/admin/user-filters';
-import { UserManagementTable } from '@/src/components/superadmin/user-management-table';
+import { AdminUserManagementTable } from '@/src/components/admin/user-management-table';
 import { getCurrentSession } from '@/src/lib/auth';
 import { db } from '@/src/lib/db';
 import { getAdminUsers } from '@/src/server/queries/admin-users';
@@ -47,7 +47,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
       <div className="space-y-6">
         <h1 className="font-display text-4xl text-app-text">Користувачі</h1>
         <AdminUserFilters selectedRole={role} selectedStatus={status} actorRole={actorRole} />
-        <UserManagementTable actorRole={actorRole} users={users} />
+        <AdminUserManagementTable actorRole={actorRole} users={users} />
       </div>
     </DashboardShell>
   );
