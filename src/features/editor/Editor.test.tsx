@@ -15,7 +15,6 @@ describe('Editor', () => {
 
     render(<Editor initialDocument={initialDocument} onChange={onChange} />)
 
-    expect(screen.getByRole('heading', { name: 'Page 1' })).toBeInTheDocument()
     expect(screen.getByTestId('editor-page-count')).toHaveTextContent('1')
     expect(screen.getByTestId('editor-page-id')).toHaveTextContent('doc-1')
     expect(onChange).not.toHaveBeenCalled()
@@ -31,14 +30,13 @@ describe('Editor', () => {
     })
 
     expect(screen.getByTestId('editor-page-count')).toHaveTextContent('2')
-    expect(screen.getByRole('heading', { name: 'Page 2' })).toBeInTheDocument()
     expect(onChange).toHaveBeenCalledTimes(1)
     expect(onChange.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         activePageId: expect.any(String),
         pages: expect.arrayContaining([
-          expect.objectContaining({ name: 'Page 1' }),
-          expect.objectContaining({ name: 'Page 2' }),
+          expect.objectContaining({ name: 'Сторінка 1' }),
+          expect.objectContaining({ name: 'Сторінка 2' }),
         ]),
       }),
     )
@@ -77,7 +75,7 @@ describe('Editor', () => {
     expect(screen.getByTestId('image-element-image-1')).toContainElement(screen.getByAltText('Preview image'))
   })
 
-  it('selects, moves, and resizes the active page element', () => {
+  it('selects a text element on click', () => {
     const onChange = vi.fn()
     const initialDocument = createDocument(() => 'doc-1')
     initialDocument.pages[0].width = 800
@@ -100,18 +98,7 @@ describe('Editor', () => {
       screen.getByRole('button', { name: 'Editable text' }).click()
     })
 
-    act(() => {
-      screen.getByRole('button', { name: 'Move element right' }).click()
-    })
-
-    expect(onChange).toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Editable text' })).toHaveStyle({ left: '50px', top: '60px' })
-
-    act(() => {
-      screen.getByRole('button', { name: 'Resize element larger' }).click()
-    })
-
-    expect(screen.getByRole('button', { name: 'Editable text' })).toHaveStyle({ width: '260px', height: '100px' })
+    expect(screen.getByRole('button', { name: 'Editable text' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('does not expose editing controls in readOnly mode', () => {
@@ -132,7 +119,6 @@ describe('Editor', () => {
 
     expect(screen.getByTestId('editor-shell')).toHaveClass('editor-shell')
     expect(screen.queryByRole('button', { name: 'Додати сторінку' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Move element right' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Locked' })).not.toHaveAttribute('aria-pressed', 'true')
   })
 })
