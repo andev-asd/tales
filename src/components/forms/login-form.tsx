@@ -5,11 +5,13 @@ import { Button } from '@/src/components/ui/button';
 type LoginFormProps = {
   onGoogleSignIn?: () => void | Promise<void>;
   onEmailSignIn?: () => void | Promise<void>;
+  onEmailRegister?: () => void | Promise<void>;
 };
 
 export function LoginForm({
   onGoogleSignIn,
   onEmailSignIn,
+  onEmailRegister,
 }: LoginFormProps) {
   const handleGoogleSignIn = async () => {
     if (onGoogleSignIn) {
@@ -51,6 +53,15 @@ export function LoginForm({
     window.location.href = '/login/email';
   };
 
+  const handleEmailRegister = async () => {
+    if (onEmailRegister) {
+      await onEmailRegister();
+      return;
+    }
+
+    window.location.href = '/register';
+  };
+
   return (
     <div className="grid gap-4 rounded-[var(--radius-lg)] border border-app-border bg-app-surface p-8 shadow-soft">
       <Button className="w-full" onClick={handleGoogleSignIn}>
@@ -61,6 +72,12 @@ export function LoginForm({
         onClick={handleEmailSignIn}
       >
         Увійти з email
+      </Button>
+      <Button
+        className="w-full bg-transparent text-app-text ring-1 ring-app-border hover:bg-app-elevated hover:text-app-text"
+        onClick={handleEmailRegister}
+      >
+        Зареєструватись
       </Button>
     </div>
   );
