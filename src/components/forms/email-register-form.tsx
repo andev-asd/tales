@@ -24,25 +24,27 @@ export function EmailRegisterForm() {
 
     setLoading(true);
 
-    const { error: authError } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: '/library',
-    });
+    try {
+      const { error: authError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        callbackURL: '/library',
+      });
 
-    setLoading(false);
-
-    if (authError) {
-      if (authError.status === 422 || authError.message?.toLowerCase().includes('already')) {
-        setError('Цей email вже зайнятий. Спробуйте увійти або скинути пароль.');
-      } else {
-        setError(authError.message ?? 'Не вдалося зареєструватись');
+      if (authError) {
+        if (authError.status === 422 || authError.message?.toLowerCase().includes('already')) {
+          setError('Цей email вже зайнятий. Спробуйте увійти або скинути пароль.');
+        } else {
+          setError(authError.message ?? 'Не вдалося зареєструватись');
+        }
+        return;
       }
-      return;
-    }
 
-    window.location.href = '/library';
+      window.location.href = '/library';
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

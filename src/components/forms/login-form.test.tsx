@@ -26,6 +26,17 @@ describe('LoginForm', () => {
     expect(onEmailSignIn).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onEmailRegister when register button is clicked', async () => {
+    const user = userEvent.setup();
+    const onEmailRegister = vi.fn();
+
+    render(<LoginForm onEmailRegister={onEmailRegister} />);
+
+    await user.click(screen.getByRole('button', { name: 'Зареєструватись' }));
+
+    expect(onEmailRegister).toHaveBeenCalledTimes(1);
+  });
+
   it('renders Google sign-in as a clickable button without plain form fallback', async () => {
     render(<LoginForm />);
 
