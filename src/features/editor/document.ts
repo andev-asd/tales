@@ -165,3 +165,24 @@ export const createDocumentFromImages = (
     activePageId: pages[0].id,
   }
 }
+
+export const updateTextElement = (
+  document: EditorDocument,
+  pageId: string,
+  elementId: string,
+  text: string,
+): EditorDocument => ({
+  ...document,
+  pages: document.pages.map((page) =>
+    page.id !== pageId
+      ? page
+      : {
+          ...page,
+          elements: page.elements.map((element) =>
+            element.id !== elementId || element.type !== 'text'
+              ? element
+              : { ...element, text },
+          ),
+        },
+  ),
+})

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { addImageElement, addPage, addTextElement, createDocument, createDocumentFromImages, updateElementBounds } from './document'
+import { addImageElement, addPage, addTextElement, createDocument, createDocumentFromImages, updateElementBounds, updateTextElement } from './document'
 
 describe('editor document helpers', () => {
   it('creates a document with one active page', () => {
@@ -134,5 +134,29 @@ describe('editor document helpers', () => {
         alt: '',
       },
     ])
+  })
+
+  it('updateTextElement replaces text on the matching element', () => {
+    const doc = createDocument(() => 'page-1')
+    const withText = addTextElement(doc, 'page-1', () => 'el-1', { text: 'Hello' })
+    const updated = updateTextElement(withText, 'page-1', 'el-1', 'World')
+
+    expect(updated.pages[0].elements[0]).toEqual({
+      id: 'el-1',
+      type: 'text',
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 40,
+      text: 'World',
+    })
+  })
+
+  it('updateTextElement leaves other elements unchanged', () => {
+    const doc = createDocument(() => 'page-1')
+    const withText = addTextElement(doc, 'page-1', () => 'el-1', { text: 'Hello' })
+    const updated = updateTextElement(withText, 'page-1', 'wrong-id', 'World')
+
+    expect(updated.pages[0].elements[0]).toMatchObject({ text: 'Hello' })
   })
 })
