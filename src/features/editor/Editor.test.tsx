@@ -101,6 +101,22 @@ describe('Editor', () => {
     expect(screen.getByRole('button', { name: 'Editable text' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('adds a caption text element when "Додати підпис" is clicked', () => {
+    const onChange = vi.fn()
+    const initialDocument = createDocument(() => 'doc-1')
+
+    render(<Editor initialDocument={initialDocument} onChange={onChange} />)
+
+    act(() => {
+      screen.getByRole('button', { name: '+ Додати підпис' }).click()
+    })
+
+    expect(onChange).toHaveBeenCalledTimes(1)
+    const updatedDoc = onChange.mock.calls[0][0]
+    expect(updatedDoc.pages[0].elements).toHaveLength(1)
+    expect(updatedDoc.pages[0].elements[0]).toMatchObject({ type: 'text', text: '' })
+  })
+
   it('does not expose editing controls in readOnly mode', () => {
     const initialDocument = createDocument(() => 'doc-1')
     initialDocument.pages[0].elements = [
