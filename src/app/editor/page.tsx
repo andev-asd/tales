@@ -28,9 +28,9 @@ export default async function EditorPage({
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 md:px-8">
       <div className="space-y-4">
-        <h1 className="font-display text-4xl text-app-text">Canvas Editor</h1>
+        <h1 className="font-display text-4xl text-app-text">Конструктор казки</h1>
         <p className="text-app-secondary">
-          Тестова сторінка для ручної перевірки незалежного editor module.
+          Персоналізуйте казку перед замовленням — додавайте текст та зображення.
         </p>
       </div>
       <div className="mt-6 overflow-hidden rounded-[var(--radius-lg)] border border-app-border bg-app-surface shadow-soft">

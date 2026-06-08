@@ -20,7 +20,7 @@ export function TaleActions({ tale }: TaleActionsProps) {
   const constructorButton = (
     <Link
       href={`/editor?slug=${tale.slug}`}
-      className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition-colors duration-200 bg-transparent text-app-text ring-1 ring-app-border hover:bg-app-elevated hover:text-app-text"
+      className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition-colors duration-200 bg-transparent text-app-text ring-1 ring-app-border hover:bg-app-surface hover:text-app-text"
     >
       Відкрити конструктор
     </Link>
