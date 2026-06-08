@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
-import { addImageElement, addTextElement, createDocument, updateElementBounds } from './document'
+import { addImageElement, addTextElement, createDocument, updateElementBounds, updateTextElement } from './document'
 import type { EditorDocument } from './types'
 
 type EditorContextValue = {
@@ -15,6 +15,7 @@ type EditorContextValue = {
   addImageElementToCurrentPage: () => void
   moveSelectedElementRight: () => void
   resizeSelectedElementLarger: () => void
+  updateTextElementOnCurrentPage: (elementId: string, text: string) => void
   updateDocument: (nextDocument: EditorDocument | ((currentDocument: EditorDocument) => EditorDocument)) => void
 }
 
@@ -124,6 +125,14 @@ export const EditorProvider = ({ children, initialDocument, onChange }: EditorPr
     }))
   }, [applyElementBounds])
 
+  const updateTextElementOnCurrentPage = useCallback(
+    (elementId: string, text: string) => {
+      if (!currentPageId) return
+      updateDocument((doc) => updateTextElement(doc, currentPageId, elementId, text))
+    },
+    [currentPageId, updateDocument],
+  )
+
   const value = useMemo(
     () => ({
       document,
@@ -135,6 +144,7 @@ export const EditorProvider = ({ children, initialDocument, onChange }: EditorPr
       addImageElementToCurrentPage,
       moveSelectedElementRight,
       resizeSelectedElementLarger,
+      updateTextElementOnCurrentPage,
       updateDocument,
     }),
     [
@@ -144,6 +154,7 @@ export const EditorProvider = ({ children, initialDocument, onChange }: EditorPr
       document,
       moveSelectedElementRight,
       resizeSelectedElementLarger,
+      updateTextElementOnCurrentPage,
       selectedElementId,
     ],
   )
