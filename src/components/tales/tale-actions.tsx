@@ -50,7 +50,7 @@ export function TaleActions({ tale }: TaleActionsProps) {
 
   if (tale.accessType === 'PERSONALIZABLE') {
     return (
-      <div className="mt-8 flex flex-wrap gap-4">
+      <div className="mt-8 flex flex-wrap gap-3">
         <Button>Купити шаблон</Button>
         <Button className="bg-transparent text-app-text ring-1 ring-app-border hover:bg-app-surface hover:text-app-text">
           Персоналізувати ім'ям
