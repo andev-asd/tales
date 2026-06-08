@@ -27,7 +27,7 @@ describe('Editor', () => {
     render(<Editor onChange={onChange} />)
 
     act(() => {
-      screen.getByRole('button', { name: 'Add page' }).click()
+      screen.getByRole('button', { name: 'Додати сторінку' }).click()
     })
 
     expect(screen.getByTestId('editor-page-count')).toHaveTextContent('2')
@@ -131,7 +131,7 @@ describe('Editor', () => {
     render(<Editor initialDocument={initialDocument} readOnly className="editor-shell" />)
 
     expect(screen.getByTestId('editor-shell')).toHaveClass('editor-shell')
-    expect(screen.queryByRole('button', { name: 'Add page' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати сторінку' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Move element right' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Locked' })).not.toHaveAttribute('aria-pressed', 'true')
   })
