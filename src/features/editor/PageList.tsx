@@ -9,7 +9,7 @@ type PageListProps = {
 
 export const PageList = ({ pages, currentPageId, readOnly, onSelectPage }: PageListProps) => (
   <aside className="w-56 shrink-0 border-r border-slate-200 bg-slate-50 p-3">
-    <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Pages</div>
+    <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Сторінки</div>
     <div className="space-y-2">
       {pages.map((page) => (
         <button
