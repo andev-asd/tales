@@ -1,10 +1,29 @@
 import { Editor } from '@/src/features/editor/Editor';
-import { createDocument } from '@/src/features/editor/document';
+import { createDocument, createDocumentFromImages } from '@/src/features/editor/document';
+import { getCatalogTaleBySlug } from '@/src/server/queries/catalog';
 
 export const dynamic = 'force-dynamic';
 
-export default function EditorPage() {
-  const initialDocument = createDocument();
+export default async function EditorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ slug?: string }>;
+}) {
+  const { slug } = await searchParams;
+
+  let initialDocument = createDocument();
+
+  if (slug) {
+    const tale = await getCatalogTaleBySlug(slug);
+
+    if (tale) {
+      const imageUrls = [
+        ...(tale.coverUrl ? [tale.coverUrl] : []),
+        ...tale.galleryUrls,
+      ];
+      initialDocument = createDocumentFromImages(imageUrls);
+    }
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 md:px-8">
