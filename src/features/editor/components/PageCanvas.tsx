@@ -6,6 +6,7 @@ import type { EditorElement, EditorPage } from '../types'
 type PageCanvasProps = {
   page: EditorPage
   readOnly?: boolean
+  onTextChange?: (elementId: string, text: string) => void
 }
 
 const renderElement = (
@@ -13,18 +14,36 @@ const renderElement = (
   selectedElementId: string | null,
   readOnly?: boolean,
   onSelect?: (elementId: string) => void,
+  onTextChange?: (elementId: string, text: string) => void,
 ) => {
   const selected = element.id === selectedElementId
   const handleSelect = onSelect ? () => onSelect(element.id) : undefined
 
   if (element.type === 'text') {
-    return <TextElement key={element.id} element={element} selected={selected} readOnly={readOnly} onSelect={handleSelect} />
+    return (
+      <TextElement
+        key={element.id}
+        element={element}
+        selected={selected}
+        readOnly={readOnly}
+        onSelect={handleSelect}
+        onTextChange={onTextChange}
+      />
+    )
   }
 
-  return <ImageElement key={element.id} element={element} selected={selected} readOnly={readOnly} onSelect={handleSelect} />
+  return (
+    <ImageElement
+      key={element.id}
+      element={element}
+      selected={selected}
+      readOnly={readOnly}
+      onSelect={handleSelect}
+    />
+  )
 }
 
-export const PageCanvas = ({ page, readOnly }: PageCanvasProps) => {
+export const PageCanvas = ({ page, readOnly, onTextChange }: PageCanvasProps) => {
   const { selectedElementId, setSelectedElementId } = useEditorContext()
 
   return (
@@ -34,7 +53,9 @@ export const PageCanvas = ({ page, readOnly }: PageCanvasProps) => {
       style={{ width: page.width, height: page.height }}
       onClick={readOnly ? undefined : () => setSelectedElementId(null)}
     >
-      {page.elements.map((element) => renderElement(element, selectedElementId, readOnly, setSelectedElementId))}
+      {page.elements.map((element) =>
+        renderElement(element, selectedElementId, readOnly, setSelectedElementId, onTextChange),
+      )}
     </section>
   )
 }
