@@ -124,3 +124,44 @@ export const updateElementBounds = (
     }
   }),
 })
+
+export const createDocumentFromImages = (
+  imageUrls: string[],
+  idFactory: IdFactory = createDefaultIdFactory(),
+): EditorDocument => {
+  if (imageUrls.length === 0) {
+    return createDocument(idFactory)
+  }
+
+  const documentId = nextId(idFactory)
+
+  const pages: EditorPage[] = imageUrls.map((url, index) => {
+    const pageId = nextId(idFactory)
+    const elementId = nextId(idFactory)
+
+    return {
+      id: pageId,
+      name: `Page ${index + 1}`,
+      width: 1200,
+      height: 800,
+      elements: [
+        {
+          id: elementId,
+          type: 'image' as const,
+          x: 0,
+          y: 0,
+          width: 1200,
+          height: 800,
+          src: url,
+          alt: '',
+        },
+      ],
+    }
+  })
+
+  return {
+    id: documentId,
+    pages,
+    activePageId: pages[0].id,
+  }
+}

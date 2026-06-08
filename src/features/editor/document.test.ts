@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { addImageElement, addPage, addTextElement, createDocument, updateElementBounds } from './document'
+import { addImageElement, addPage, addTextElement, createDocument, createDocumentFromImages, updateElementBounds } from './document'
 
 describe('editor document helpers', () => {
   it('creates a document with one active page', () => {
@@ -91,5 +91,48 @@ describe('editor document helpers', () => {
       height: 90,
       text: 'Hello',
     })
+  })
+
+  it('createDocumentFromImages with empty array returns a blank document', () => {
+    const doc = createDocumentFromImages([], () => 'id-1')
+
+    expect(doc.pages).toHaveLength(1)
+    expect(doc.pages[0].elements).toHaveLength(0)
+  })
+
+  it('createDocumentFromImages creates one page per image with full-size ImageElement', () => {
+    let counter = 0
+    const idFactory = () => `id-${++counter}`
+
+    const doc = createDocumentFromImages(['https://example.com/a.jpg', 'https://example.com/b.jpg'], idFactory)
+
+    expect(doc.pages).toHaveLength(2)
+    expect(doc.activePageId).toBe(doc.pages[0].id)
+
+    expect(doc.pages[0].elements).toEqual([
+      {
+        id: expect.any(String),
+        type: 'image',
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 800,
+        src: 'https://example.com/a.jpg',
+        alt: '',
+      },
+    ])
+
+    expect(doc.pages[1].elements).toEqual([
+      {
+        id: expect.any(String),
+        type: 'image',
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 800,
+        src: 'https://example.com/b.jpg',
+        alt: '',
+      },
+    ])
   })
 })
