@@ -40,6 +40,9 @@ export default async function TalePage({
           <Badge>{label}</Badge>
           <h1 className="mt-5 font-display text-5xl text-app-text">{tale.title}</h1>
           <p className="mt-6 text-lg leading-8 text-app-secondary">{tale.fullDescription}</p>
+          <p className="mt-4 text-sm text-app-secondary">
+            Друкована книга — виготовляється на замовлення в типографії. PDF можна завантажити у вашому профілі.
+          </p>
           <TaleActions tale={tale} />
         </div>
       </div>
