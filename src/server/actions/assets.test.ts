@@ -12,6 +12,7 @@ const env = {
   SUPABASE_SERVICE_ROLE_KEY: 'service-role',
   SUPABASE_IMAGE_BUCKET: 'images',
   SUPABASE_BOOKS_BUCKET: 'files',
+  NOVA_POSHTA_API_KEY: 'nova-poshta-test-key',
 };
 
 beforeEach(() => {

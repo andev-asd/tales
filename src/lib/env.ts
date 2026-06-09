@@ -11,6 +11,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_IMAGE_BUCKET: z.string().min(1),
   SUPABASE_BOOKS_BUCKET: z.string().min(1),
+  NOVA_POSHTA_API_KEY: z.string().min(1),
 });
 
 export function getEnv() {
