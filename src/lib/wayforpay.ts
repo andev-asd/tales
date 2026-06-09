@@ -9,7 +9,10 @@ export interface PaymentOrderData {
   serviceUrl: string;
   returnUrl: string;
   cancelUrl: string;
-  secretKey: string;
+}
+
+export interface WayForPayCallbackWithSignature extends WayForPayCallback {
+  merchantSignature: string;
 }
 
 export interface WayForPayCallback {
@@ -28,7 +31,10 @@ export function buildSignature(fields: string[], secret: string): string {
   return createHmac('md5', secret).update(data).digest('hex');
 }
 
-export function buildPaymentFormData(order: PaymentOrderData): Record<string, string> {
+export function buildPaymentFormData(
+  order: Omit<PaymentOrderData, 'secretKey'>,
+  secret: string
+): Record<string, string> {
   const orderDate = Math.floor(Date.now() / 1000).toString();
   const amount = order.amount.toString();
   const currency = 'UAH';
@@ -47,7 +53,7 @@ export function buildPaymentFormData(order: PaymentOrderData): Record<string, st
     productPrice,
   ];
 
-  const merchantSignature = buildSignature(signatureFields, order.secretKey);
+  const merchantSignature = buildSignature(signatureFields, secret);
 
   return {
     merchantAccount: order.merchantAccount,
@@ -68,7 +74,7 @@ export function buildPaymentFormData(order: PaymentOrderData): Record<string, st
 }
 
 export function verifyCallbackSignature(
-  body: WayForPayCallback & { merchantSignature: string },
+  body: WayForPayCallbackWithSignature,
   secret: string
 ): boolean {
   const fields = [

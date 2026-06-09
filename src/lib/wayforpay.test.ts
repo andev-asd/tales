@@ -25,6 +25,7 @@ describe('buildSignature', () => {
 });
 
 describe('buildPaymentFormData', () => {
+  const secret = 'test_secret_key';
   const baseOrder = {
     orderId: 'order-abc-123',
     amount: 250,
@@ -34,11 +35,10 @@ describe('buildPaymentFormData', () => {
     serviceUrl: 'https://example.com/api/wayforpay/callback',
     returnUrl: 'https://example.com/payment/order-abc-123/success',
     cancelUrl: 'https://example.com/payment/order-abc-123/cancel',
-    secretKey: 'test_secret_key',
   };
 
   it('includes all required fields', () => {
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     expect(data).toHaveProperty('merchantAccount', 'test_merchant');
     expect(data).toHaveProperty('merchantDomainName', 'example.com');
     expect(data).toHaveProperty('merchantTransactionSecureType', 'AUTO');
@@ -56,28 +56,28 @@ describe('buildPaymentFormData', () => {
   });
 
   it('merchantSignature is a 32-char hex string (HMAC-MD5)', () => {
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     expect(data.merchantSignature).toMatch(/^[0-9a-f]{32}$/);
   });
 
   it('currency is "UAH"', () => {
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     expect(data.currency).toBe('UAH');
   });
 
   it('orderReference equals the given orderId', () => {
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     expect(data.orderReference).toBe(baseOrder.orderId);
   });
 
   it('merchantTransactionSecureType is "AUTO"', () => {
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     expect(data.merchantTransactionSecureType).toBe('AUTO');
   });
 
   it('orderDate is a unix timestamp string (numeric, ~now)', () => {
     const before = Math.floor(Date.now() / 1000);
-    const data = buildPaymentFormData(baseOrder);
+    const data = buildPaymentFormData(baseOrder, secret);
     const after = Math.floor(Date.now() / 1000);
     const ts = parseInt(data.orderDate, 10);
     expect(ts).toBeGreaterThanOrEqual(before);
