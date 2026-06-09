@@ -88,8 +88,13 @@ describe('deliverySchema', () => {
   })
 
   it('rejects BRANCH without branchNumber', () => {
-    const { branchNumber: _, ...rest } = validBranch
-    const result = deliverySchema.safeParse(rest)
+    const result = deliverySchema.safeParse({
+      service: validBranch.service,
+      deliveryType: validBranch.deliveryType,
+      city: validBranch.city,
+      recipientName: validBranch.recipientName,
+      recipientPhone: validBranch.recipientPhone,
+    })
     expect(result.success).toBe(false)
     if (!result.success) {
       const paths = result.error.issues.map((i) => i.path.join('.'))
