@@ -41,6 +41,10 @@ export async function createOrderAction(
     return { ok: false, error: 'Казку не знайдено' }
   }
 
+  if (tale.accessType === 'FREE') {
+    return { ok: false, error: 'Ця казка безкоштовна — її не потрібно замовляти' }
+  }
+
   const orderType =
     tale.accessType === 'PERSONALIZABLE' ? 'PERSONALIZED_TEMPLATE' : 'READY_TALE'
 

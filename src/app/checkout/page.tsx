@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { CheckoutForm } from '@/src/components/forms/checkout-form'
 import { getCheckoutTaleBySlug } from '@/src/server/queries/checkout'
+import { getCurrentSession } from '@/src/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,11 @@ export default async function CheckoutPage({
   searchParams: Promise<{ slug?: string }>
 }) {
   const { slug } = await searchParams
+
+  const session = await getCurrentSession().catch(() => null)
+  if (!session?.user) {
+    redirect('/login')
+  }
 
   if (!slug) {
     redirect('/catalog')

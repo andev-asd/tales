@@ -3,9 +3,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckoutForm } from './checkout-form'
+import { createOrderAction } from '@/src/server/actions/create-order'
 
+const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }))
 
 vi.mock('@/src/server/actions/create-order', () => ({
@@ -76,5 +78,42 @@ describe('CheckoutForm', () => {
   it('renders submit button', () => {
     render(<CheckoutForm tale={tale} />)
     expect(screen.getByRole('button', { name: 'Підтвердити замовлення' })).toBeInTheDocument()
+  })
+
+  it('calls createOrderAction with tale id and delivery data on valid submit', async () => {
+    const user = userEvent.setup()
+    render(<CheckoutForm tale={tale} />)
+
+    await user.type(screen.getByLabelText('Місто *'), 'Київ')
+    await user.type(screen.getByLabelText('Відділення *'), '47')
+    await user.type(screen.getByLabelText('ПІБ отримувача *'), 'Шевченко Тарас')
+    await user.clear(screen.getByLabelText('Телефон *'))
+    await user.type(screen.getByLabelText('Телефон *'), '+380671234567')
+
+    await user.click(screen.getByRole('button', { name: 'Підтвердити замовлення' }))
+
+    await vi.waitFor(() => {
+      expect(vi.mocked(createOrderAction)).toHaveBeenCalledWith('tale-1', expect.objectContaining({ city: 'Київ' }))
+      expect(mockPush).toHaveBeenCalledWith('/orders/order-1')
+    })
+  })
+
+  it('shows error message when createOrderAction returns error', async () => {
+    vi.mocked(createOrderAction).mockResolvedValueOnce({ ok: false, error: 'Помилка сервера' })
+
+    const user = userEvent.setup()
+    render(<CheckoutForm tale={tale} />)
+
+    await user.type(screen.getByLabelText('Місто *'), 'Київ')
+    await user.type(screen.getByLabelText('Відділення *'), '47')
+    await user.type(screen.getByLabelText('ПІБ отримувача *'), 'Шевченко Тарас')
+    await user.clear(screen.getByLabelText('Телефон *'))
+    await user.type(screen.getByLabelText('Телефон *'), '+380671234567')
+
+    await user.click(screen.getByRole('button', { name: 'Підтвердити замовлення' }))
+
+    await vi.waitFor(() => {
+      expect(screen.getByText('Помилка сервера')).toBeInTheDocument()
+    })
   })
 })
