@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 
 import { Input } from '@/src/components/ui/input';
 import type { DeliveryAutocompleteOption } from '@/src/lib/nova-poshta-types';
@@ -74,7 +75,9 @@ export function DeliveryAutocomplete({
   const [activeIndex, setActiveIndex] = React.useState(-1);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = React.useState(0);
   const requestIdRef = React.useRef(0);
+  const selectedValueRef = React.useRef<string | null>(null);
   const query = value.trim();
   const requestUrl =
     !disabled && query.length >= minQueryLength
@@ -83,6 +86,11 @@ export function DeliveryAutocomplete({
 
   React.useEffect(() => {
     const requestId = ++requestIdRef.current;
+
+    if (selectedValueRef.current === value) {
+      setLoading(false);
+      return;
+    }
 
     if (disabled || query.length < minQueryLength) {
       setOptions([]);
@@ -101,6 +109,10 @@ export function DeliveryAutocomplete({
       setError(null);
       return;
     }
+
+    setOptions([]);
+    setOpen(false);
+    setActiveIndex(-1);
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -156,21 +168,52 @@ export function DeliveryAutocomplete({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [disabled, minQueryLength, query, requestUrl]);
+  }, [disabled, minQueryLength, query, refreshKey, requestUrl, value]);
 
   function selectOption(option: DeliveryAutocompleteOption) {
+    selectedValueRef.current = option.value;
     onValueChange(option.value);
     onSelect(option);
-    setOptions([]);
     setOpen(false);
     setActiveIndex(-1);
     setError(null);
+  }
+
+  function openCachedOptions() {
+    if (options.length === 0) {
+      return false;
+    }
+
+    const selectedIndex = options.findIndex((option) => option.value === value);
+    setActiveIndex(selectedIndex);
+    setOpen(true);
+    return true;
+  }
+
+  function toggleDropdown() {
+    if (open) {
+      setOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
+
+    if (!openCachedOptions() && requestUrl) {
+      selectedValueRef.current = null;
+      setRefreshKey((current) => current + 1);
+    }
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Escape') {
       setOpen(false);
       setActiveIndex(-1);
+      return;
+    }
+
+    if (!open && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+      if (openCachedOptions()) {
+        event.preventDefault();
+      }
       return;
     }
 
@@ -204,64 +247,85 @@ export function DeliveryAutocomplete({
   }
 
   return (
-    <div className="relative space-y-1">
+    <div className="space-y-1">
       <label
         htmlFor={id}
         className="block text-sm font-medium text-app-text"
       >
         {label}
       </label>
-      <Input
-        id={id}
-        role="combobox"
-        aria-autocomplete="list"
-        aria-expanded={open}
-        aria-controls={`${id}-listbox`}
-        aria-activedescendant={
-          activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
-        }
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        autoComplete="off"
-        onChange={(event) => {
-          setOptions([]);
-          setOpen(false);
-          setActiveIndex(-1);
-          setError(null);
-          onValueChange(event.target.value);
-        }}
-        onKeyDown={handleKeyDown}
-      />
+      <div className="relative">
+        <Input
+          id={id}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={`${id}-listbox`}
+          aria-activedescendant={
+            activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
+          }
+          className="w-full pr-11"
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete="off"
+          onChange={(event) => {
+            selectedValueRef.current = null;
+            setOptions([]);
+            setOpen(false);
+            setActiveIndex(-1);
+            setError(null);
+            onValueChange(event.target.value);
+          }}
+          onClick={openCachedOptions}
+          onKeyDown={handleKeyDown}
+        />
 
-      {open && (
-        <ul
-          id={`${id}-listbox`}
-          role="listbox"
-          className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-[var(--radius-md)] border border-app-border bg-app-elevated p-1 shadow-lg"
+        <button
+          type="button"
+          aria-label={`${open ? 'Закрити' : 'Відкрити'} список: ${label}`}
+          aria-controls={`${id}-listbox`}
+          aria-expanded={open}
+          disabled={disabled}
+          className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] text-app-muted hover:bg-app-surface hover:text-app-text disabled:cursor-not-allowed disabled:opacity-50"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={toggleDropdown}
         >
-          {options.map((option, index) => (
-            <li
-              id={`${id}-option-${index}`}
-              role="option"
-              aria-selected={index === activeIndex}
-              key={option.ref}
-            >
-              <button
-                type="button"
-                className={`w-full rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm text-app-text ${
-                  index === activeIndex ? 'bg-app-surface' : ''
-                }`}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => selectOption(option)}
+          <ChevronDown
+            aria-hidden="true"
+            className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {open && (
+          <ul
+            id={`${id}-listbox`}
+            role="listbox"
+            className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-[var(--radius-md)] border border-app-border bg-app-elevated p-1 shadow-lg"
+          >
+            {options.map((option, index) => (
+              <li
+                id={`${id}-option-${index}`}
+                role="option"
+                aria-selected={option.value === value}
+                key={option.ref}
               >
-                {option.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+                <button
+                  type="button"
+                  className={`w-full rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm text-app-text ${
+                    index === activeIndex ? 'bg-app-surface' : ''
+                  }`}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectOption(option)}
+                >
+                  {option.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <p aria-live="polite" className="min-h-5 text-sm text-app-muted">
         {loading ? 'Завантаження…' : error}

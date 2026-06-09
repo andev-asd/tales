@@ -129,6 +129,38 @@ describe('DeliveryAutocomplete', () => {
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
+  it('reopens cached options from the dropdown button after selection', async () => {
+    mocks.fetch.mockResolvedValue(jsonResponse({ options: cityOptions }));
+    const input = renderAutocomplete();
+
+    fireEvent.change(input, { target: { value: 'Ки' } });
+    await advanceDebounce();
+    fireEvent.click(screen.getByRole('button', { name: 'Київ, Київська обл.' }));
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Відкрити список: Місто *' }),
+    );
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getByText('Бровари, Київська обл.')).toBeInTheDocument();
+    expect(mocks.fetch).toHaveBeenCalledOnce();
+  });
+
+  it('reopens cached options when the input is clicked', async () => {
+    mocks.fetch.mockResolvedValue(jsonResponse({ options: cityOptions }));
+    const input = renderAutocomplete();
+
+    fireEvent.change(input, { target: { value: 'Ки' } });
+    await advanceDebounce();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+    fireEvent.click(input);
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
   it('supports ArrowDown, ArrowUp, and Escape', async () => {
     mocks.fetch.mockResolvedValue(jsonResponse({ options: cityOptions }));
     const input = renderAutocomplete();
