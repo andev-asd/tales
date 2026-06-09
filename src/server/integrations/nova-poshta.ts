@@ -1,4 +1,4 @@
-import 'next/dist/compiled/server-only';
+import 'server-only';
 
 import { getEnv } from '@/src/lib/env';
 import type {
@@ -202,7 +202,7 @@ export async function searchNovaPoshtaWarehouses(
   query: string,
 ): Promise<NovaPoshtaWarehouseOption[]> {
   const data = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
-    SettlementRef: cityRef,
+    CityRef: cityRef,
     FindByString: query,
     Limit: String(RESULT_LIMIT),
     Page: '1',

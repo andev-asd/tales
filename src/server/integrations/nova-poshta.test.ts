@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   timeout: vi.fn(() => AbortSignal.abort()),
 }));
 
-vi.mock('next/dist/compiled/server-only', () => ({}));
+vi.mock('server-only', () => ({}));
 
 vi.mock('@/src/lib/env', () => ({
   getEnv: mocks.getEnv,
@@ -129,7 +129,9 @@ describe('Nova Poshta server client', () => {
       }),
     );
 
-    await expect(searchNovaPoshtaWarehouses('city-ref', 'Хрещатик')).resolves.toEqual([
+    await expect(
+      searchNovaPoshtaWarehouses('delivery-city-ref', 'Хрещатик'),
+    ).resolves.toEqual([
       {
         ref: 'branch-ref',
         value: '[Відділення] Відділення №47: вул. Хрещатик, 1',
@@ -164,7 +166,7 @@ describe('Nova Poshta server client', () => {
           modelName: 'AddressGeneral',
           calledMethod: 'getWarehouses',
           methodProperties: {
-            SettlementRef: 'city-ref',
+            CityRef: 'delivery-city-ref',
             FindByString: 'Хрещатик',
             Limit: '20',
             Page: '1',
@@ -173,6 +175,9 @@ describe('Nova Poshta server client', () => {
         }),
       }),
     );
+
+    const requestBody = JSON.parse(mocks.fetch.mock.calls[0]?.[1]?.body as string);
+    expect(requestBody.methodProperties).not.toHaveProperty('SettlementRef');
   });
 
   it('filters malformed options and limits provider results to 20', async () => {
