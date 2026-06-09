@@ -2,7 +2,6 @@
   "name": "kazka",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.5.1",
   "scripts": {
     "dev": "cross-env NEXT_DISABLE_DEVTOOLS=1 next dev --hostname 127.0.0.1 --port 3002",
     "build": "prisma generate && next build",
@@ -29,7 +28,6 @@
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "server-only": "0.0.1",
     "tailwind-merge": "^3.3.0",
     "zod": "^4.0.0"
   },
@@ -47,7 +45,6 @@
     "eslint": "^9.25.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
-    "jiti": "2.7.0",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.3",
     "prisma": "^6.8.2",

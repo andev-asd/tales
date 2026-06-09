@@ -8,7 +8,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm dev',
+    command: 'npm run dev',
     url: appDevUrl,
     reuseExistingServer: false,
     timeout: 120_000,
