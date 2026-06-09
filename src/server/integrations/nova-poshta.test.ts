@@ -168,7 +168,7 @@ describe('Nova Poshta server client', () => {
           methodProperties: {
             CityRef: 'delivery-city-ref',
             FindByString: 'Хрещатик',
-            Limit: '20',
+            Limit: '500',
             Page: '1',
             Language: 'UA',
           },
@@ -178,6 +178,36 @@ describe('Nova Poshta server client', () => {
 
     const requestBody = JSON.parse(mocks.fetch.mock.calls[0]?.[1]?.body as string);
     expect(requestBody.methodProperties).not.toHaveProperty('SettlementRef');
+  });
+
+  it('includes parcel lockers when the provider returns branches first', async () => {
+    const branches = Array.from({ length: 20 }, (_, index) => ({
+      Ref: `branch-${index}`,
+      Number: String(index + 1),
+      Description: `Відділення №${index + 1}`,
+      CategoryOfWarehouse: 'Branch',
+    }));
+    const parcelLockers = Array.from({ length: 20 }, (_, index) => ({
+      Ref: `locker-${index}`,
+      Number: String(3000 + index),
+      Description: `Поштомат №${3000 + index}`,
+      CategoryOfWarehouse: 'Postomat',
+    }));
+
+    mocks.fetch.mockResolvedValue(
+      jsonResponse({
+        success: true,
+        data: [...branches, ...parcelLockers],
+      }),
+    );
+
+    const result = await searchNovaPoshtaWarehouses('city-ref', '');
+
+    expect(result).toHaveLength(20);
+    expect(result.filter((option) => option.type === 'BRANCH')).toHaveLength(10);
+    expect(
+      result.filter((option) => option.type === 'PARCEL_LOCKER'),
+    ).toHaveLength(10);
   });
 
   it('filters malformed options and limits provider results to 20', async () => {

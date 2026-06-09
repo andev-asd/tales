@@ -8,6 +8,8 @@ import type {
 
 const NOVA_POSHTA_URL = 'https://api.novaposhta.ua/v2.0/json/';
 const RESULT_LIMIT = 20;
+const WAREHOUSE_PROVIDER_LIMIT = 500;
+const WAREHOUSE_TYPE_LIMIT = RESULT_LIMIT / 2;
 const REQUEST_TIMEOUT_MS = 5_000;
 
 type NovaPoshtaEnvelope = {
@@ -204,12 +206,13 @@ export async function searchNovaPoshtaWarehouses(
   const data = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
     CityRef: cityRef,
     FindByString: query,
-    Limit: String(RESULT_LIMIT),
+    Limit: String(WAREHOUSE_PROVIDER_LIMIT),
     Page: '1',
     Language: 'UA',
   });
 
-  const warehouses: NovaPoshtaWarehouseOption[] = [];
+  const branches: NovaPoshtaWarehouseOption[] = [];
+  const parcelLockers: NovaPoshtaWarehouseOption[] = [];
 
   for (const value of data) {
     const warehouse = normalizeWarehouse(value);
@@ -224,19 +227,46 @@ export async function searchNovaPoshtaWarehouses(
     const typeLabel = isParcelLocker ? 'Поштомат' : 'Відділення';
     const label = `[${typeLabel}] ${warehouse.description}`;
 
-    warehouses.push({
+    const option: NovaPoshtaWarehouseOption = {
       ref: warehouse.ref,
       value: label,
       number: warehouse.number,
       description: warehouse.description,
       type,
       label,
-    });
+    };
 
-    if (warehouses.length === RESULT_LIMIT) {
-      break;
+    if (isParcelLocker) {
+      parcelLockers.push(option);
+    } else {
+      branches.push(option);
     }
   }
 
-  return warehouses;
+  const selectedBranches = branches.slice(0, WAREHOUSE_TYPE_LIMIT);
+  const selectedParcelLockers = parcelLockers.slice(
+    0,
+    WAREHOUSE_TYPE_LIMIT,
+  );
+  const selected = [...selectedBranches, ...selectedParcelLockers];
+
+  if (selected.length < RESULT_LIMIT) {
+    selected.push(
+      ...branches.slice(
+        selectedBranches.length,
+        selectedBranches.length + RESULT_LIMIT - selected.length,
+      ),
+    );
+  }
+
+  if (selected.length < RESULT_LIMIT) {
+    selected.push(
+      ...parcelLockers.slice(
+        selectedParcelLockers.length,
+        selectedParcelLockers.length + RESULT_LIMIT - selected.length,
+      ),
+    );
+  }
+
+  return selected;
 }
