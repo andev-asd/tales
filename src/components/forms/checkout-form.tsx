@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { createOrderAction } from '@/src/server/actions/create-order'
+import { deliverySchema } from '@/src/lib/validators/delivery'
 import type { DeliveryInput } from '@/src/lib/validators/delivery'
 
 type Tale = {
@@ -45,20 +46,28 @@ export function CheckoutForm({ tale }: Props) {
     e.preventDefault()
     setError(null)
 
+    const effectiveDeliveryType = service === 'UKRPOSHTA' ? 'BRANCH' : deliveryType
+
     const delivery: DeliveryInput = {
       service,
-      deliveryType,
+      deliveryType: effectiveDeliveryType,
       city,
-      branchNumber: deliveryType === 'BRANCH' ? branchNumber : undefined,
-      street: deliveryType === 'COURIER' ? street : undefined,
-      house: deliveryType === 'COURIER' ? house : undefined,
-      apartment: deliveryType === 'COURIER' ? apartment : undefined,
+      branchNumber: effectiveDeliveryType === 'BRANCH' ? branchNumber : undefined,
+      street: effectiveDeliveryType === 'COURIER' ? street : undefined,
+      house: effectiveDeliveryType === 'COURIER' ? house : undefined,
+      apartment: effectiveDeliveryType === 'COURIER' ? apartment : undefined,
       recipientName,
       recipientPhone,
     }
 
+    const validation = deliverySchema.safeParse(delivery)
+    if (!validation.success) {
+      setError(validation.error.issues[0]?.message ?? 'Помилка валідації')
+      return
+    }
+
     startTransition(async () => {
-      const result = await createOrderAction(tale.id, delivery)
+      const result = await createOrderAction(tale.id, validation.data)
       if (result.ok) {
         router.push('/orders/' + result.orderId)
       } else {
@@ -134,57 +143,85 @@ export function CheckoutForm({ tale }: Props) {
       </fieldset>
 
       {/* City */}
-      <Input
-        type="text"
-        placeholder="Місто"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-      />
+      <div className="space-y-1">
+        <label htmlFor="city" className="block text-sm font-medium text-app-text">Місто *</label>
+        <Input
+          id="city"
+          type="text"
+          placeholder="Місто"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+        />
+      </div>
 
       {/* Branch number or address fields */}
       {deliveryType === 'BRANCH' ? (
-        <Input
-          type="text"
-          placeholder="Номер відділення"
-          value={branchNumber}
-          onChange={(e) => setBranchNumber(e.target.value)}
-        />
+        <div className="space-y-1">
+          <label htmlFor="branchNumber" className="block text-sm font-medium text-app-text">Відділення *</label>
+          <Input
+            id="branchNumber"
+            type="text"
+            placeholder="Номер відділення"
+            value={branchNumber}
+            onChange={(e) => setBranchNumber(e.target.value)}
+          />
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <Input
-            type="text"
-            placeholder="Наприклад: Хрещатик"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-          />
-          <Input
-            type="text"
-            placeholder="Будинок"
-            value={house}
-            onChange={(e) => setHouse(e.target.value)}
-          />
-          <Input
-            type="text"
-            placeholder="Квартира (необов'язково)"
-            value={apartment}
-            onChange={(e) => setApartment(e.target.value)}
-          />
+          <div className="space-y-1">
+            <label htmlFor="street" className="block text-sm font-medium text-app-text">Вулиця *</label>
+            <Input
+              id="street"
+              type="text"
+              placeholder="Наприклад: Хрещатик"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="house" className="block text-sm font-medium text-app-text">Будинок *</label>
+            <Input
+              id="house"
+              type="text"
+              placeholder="Будинок"
+              value={house}
+              onChange={(e) => setHouse(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="apartment" className="block text-sm font-medium text-app-text">Квартира</label>
+            <Input
+              id="apartment"
+              type="text"
+              placeholder="Квартира (необов'язково)"
+              value={apartment}
+              onChange={(e) => setApartment(e.target.value)}
+            />
+          </div>
         </div>
       )}
 
       {/* Recipient info */}
-      <Input
-        type="text"
-        placeholder="ПІБ отримувача"
-        value={recipientName}
-        onChange={(e) => setRecipientName(e.target.value)}
-      />
-      <Input
-        type="tel"
-        placeholder="+380XXXXXXXXX"
-        value={recipientPhone}
-        onChange={(e) => setRecipientPhone(e.target.value)}
-      />
+      <div className="space-y-1">
+        <label htmlFor="recipientName" className="block text-sm font-medium text-app-text">ПІБ отримувача *</label>
+        <Input
+          id="recipientName"
+          type="text"
+          placeholder="ПІБ отримувача"
+          value={recipientName}
+          onChange={(e) => setRecipientName(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1">
+        <label htmlFor="recipientPhone" className="block text-sm font-medium text-app-text">Телефон *</label>
+        <Input
+          id="recipientPhone"
+          type="tel"
+          placeholder="+380XXXXXXXXX"
+          value={recipientPhone}
+          onChange={(e) => setRecipientPhone(e.target.value)}
+        />
+      </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
