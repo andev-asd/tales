@@ -10,7 +10,7 @@ const adminItems = [
   { href: '/admin/users', label: 'Користувачі' },
   { href: '/admin/tales', label: 'Керування книгами' },
   { href: '/admin/categories', label: 'Категорії' },
-  { href: '/admin/orders', label: 'Переписка з клієнтом' },
+  { href: '/admin/orders', label: 'Замовлення' },
 ];
 
 export default async function AdminPage() {
@@ -73,9 +73,9 @@ export default async function AdminPage() {
             href="/admin/orders"
             className="rounded-[var(--radius-lg)] border border-app-border bg-app-surface p-6 shadow-soft"
           >
-            <h2 className="font-display text-2xl text-app-text">Переписка</h2>
+            <h2 className="font-display text-2xl text-app-text">Замовлення</h2>
             <p className="mt-2 text-sm text-app-secondary">
-              Робота з клієнтськими замовленнями, повідомленнями та супроводом.
+              Перегляд та обробка замовлень, зміна статусу, переписка з клієнтами.
             </p>
           </Link>
         </div>
