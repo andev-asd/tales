@@ -94,8 +94,9 @@ export default async function PaymentPage({
   const appUrl = process.env.APP_URL ?? 'http://localhost:3002';
   const merchantDomainName = new URL(appUrl).hostname;
   const serviceUrl = `${appUrl}/api/wayforpay/callback`;
-  const returnUrl = `${appUrl}/orders/${orderId}`;
-  const cancelUrl = `${appUrl}/payment/${orderId}?failed=1`;
+  // WayForPay returns via POST redirect — use API routes to avoid Next.js Server Actions conflict
+  const returnUrl = `${appUrl}/api/wayforpay/return`;
+  const cancelUrl = `${appUrl}/api/wayforpay/cancel`;
 
   const merchantAccount = process.env.WAYFORPAY_MERCHANT_ACCOUNT ?? '';
   const secretKey = process.env.WAYFORPAY_SECRET_KEY ?? '';
