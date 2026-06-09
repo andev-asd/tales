@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getCurrentSession } from '@/src/lib/auth';
 import { db } from '@/src/lib/db';
 import { buildPaymentFormData } from '@/src/lib/wayforpay';
+import { WayForPayForm } from './wayforpay-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,19 +115,5 @@ export default async function PaymentPage({
   );
 
   // 8. Auto-submit form
-  return (
-    <>
-      <form id="wfp-form" method="POST" action="https://secure.wayforpay.com/pay">
-        {Object.entries(formData).map(([name, value]) => (
-          <input key={name} type="hidden" name={name} value={value} />
-        ))}
-        <noscript>
-          <button type="submit">Перейти до оплати</button>
-        </noscript>
-      </form>
-      <script
-        dangerouslySetInnerHTML={{ __html: 'document.getElementById("wfp-form").submit()' }}
-      />
-    </>
-  );
+  return <WayForPayForm formData={formData} />;
 }
