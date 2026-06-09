@@ -69,6 +69,7 @@ export async function sendAdminMessage(orderId: string, body: string) {
   }
 
   // 2. Validate
+  if (!body || typeof body !== 'string') return { ok: false, error: 'Повідомлення не може бути порожнім' }
   const trimmed = body.trim()
   if (!trimmed) return { ok: false, error: 'Повідомлення не може бути порожнім' }
 
