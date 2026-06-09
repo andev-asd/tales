@@ -56,7 +56,26 @@ export default async function PaymentPage({
     redirect(`/orders/${orderId}`);
   }
 
-  // 5. Upsert payment record
+  // 7. Failed state UI — show before upsert so DECLINED/EXPIRED status is preserved in DB
+  // The "Retry" link reloads without ?failed=1, triggering the upsert only when user retries.
+  if (failed) {
+    return (
+      <section className="mx-auto max-w-5xl px-4 py-16 md:px-8">
+        <h1 className="font-display text-5xl text-app-text">Оплата не вдалась</h1>
+        <p className="mt-4 text-app-secondary">
+          Спробуйте ще раз або зверніться до підтримки.
+        </p>
+        <a
+          href={`/payment/${orderId}`}
+          className="mt-6 inline-block rounded-[var(--radius-md)] bg-app-accent px-6 py-3 text-white"
+        >
+          Спробувати ще раз
+        </a>
+      </section>
+    );
+  }
+
+  // 5. Upsert payment record (only when proceeding to payment, not on failure screen)
   await db.payment.upsert({
     where: { orderId },
     create: {
@@ -93,24 +112,6 @@ export default async function PaymentPage({
     },
     secretKey
   );
-
-  // 7. Failed state UI
-  if (failed) {
-    return (
-      <section className="mx-auto max-w-5xl px-4 py-16 md:px-8">
-        <h1 className="font-display text-5xl text-app-text">Оплата не вдалась</h1>
-        <p className="mt-4 text-app-secondary">
-          Спробуйте ще раз або зверніться до підтримки.
-        </p>
-        <a
-          href={`/payment/${orderId}`}
-          className="mt-6 inline-block rounded-[var(--radius-md)] bg-app-accent px-6 py-3 text-white"
-        >
-          Спробувати ще раз
-        </a>
-      </section>
-    );
-  }
 
   // 8. Auto-submit form
   return (
