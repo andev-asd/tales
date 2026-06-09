@@ -255,7 +255,7 @@ model DownloadToken {
 model Payment {
   id            String        @id @default(cuid())
   orderId       String        @unique
-  orderReference String       @unique
+  orderReference String        @unique
   status        PaymentStatus @default(PENDING)
   amount        Int
   currency      String        @default("UAH")
