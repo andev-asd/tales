@@ -14,9 +14,10 @@ type EditorProps = {
   onChange?: (document: EditorDocument) => void
   readOnly?: boolean
   className?: string
+  slug?: string
 }
 
-const EditorShell = ({ readOnly, className }: Pick<EditorProps, 'readOnly' | 'className'>) => {
+const EditorShell = ({ readOnly, className, slug }: Pick<EditorProps, 'readOnly' | 'className' | 'slug'>) => {
   const {
     currentPageId,
     document,
@@ -75,7 +76,7 @@ const EditorShell = ({ readOnly, className }: Pick<EditorProps, 'readOnly' | 'cl
 
   return (
     <div data-testid="editor-shell" className={className}>
-      <Toolbar readOnly={readOnly} onAddPage={handleAddPage} />
+      <Toolbar readOnly={readOnly} slug={slug} onAddPage={handleAddPage} />
       <div className="flex min-h-0 flex-1">
         <PageList
           pages={document.pages}
@@ -126,12 +127,12 @@ const createDefaultDocument = (): EditorDocument => {
   return doc
 }
 
-export const Editor = ({ initialDocument, onChange, readOnly, className }: EditorProps) => {
+export const Editor = ({ initialDocument, onChange, readOnly, className, slug }: EditorProps) => {
   const document = initialDocument ?? createDefaultDocument()
 
   return (
     <EditorProvider initialDocument={document} onChange={onChange}>
-      <EditorShell readOnly={readOnly} className={className} />
+      <EditorShell readOnly={readOnly} className={className} slug={slug} />
     </EditorProvider>
   )
 }

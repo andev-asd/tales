@@ -2,10 +2,11 @@ import Link from 'next/link'
 
 type ToolbarProps = {
   readOnly?: boolean
+  slug?: string
   onAddPage: () => void
 }
 
-export const Toolbar = ({ readOnly, onAddPage }: ToolbarProps) => (
+export const Toolbar = ({ readOnly, slug, onAddPage }: ToolbarProps) => (
   <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
     <div className="text-sm font-medium text-slate-900">Конструктор казки</div>
     <div className="flex items-center gap-3">
@@ -19,7 +20,7 @@ export const Toolbar = ({ readOnly, onAddPage }: ToolbarProps) => (
         </button>
       ) : null}
       <Link
-        href="/custom-story"
+        href={slug ? `/checkout?slug=${slug}` : '/catalog'}
         className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
       >
         Замовити друк

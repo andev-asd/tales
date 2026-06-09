@@ -51,7 +51,12 @@ export function TaleActions({ tale }: TaleActionsProps) {
   if (tale.accessType === 'PERSONALIZABLE') {
     return (
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button>Купити шаблон</Button>
+        <Link
+          href={`/checkout?slug=${tale.slug}`}
+          className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition-colors duration-200 bg-[var(--fg-primary)] text-white hover:opacity-90"
+        >
+          Купити шаблон
+        </Link>
         <Button className="bg-transparent text-app-text ring-1 ring-app-border hover:bg-app-surface hover:text-app-text">
           Персоналізувати ім'ям
         </Button>
@@ -62,7 +67,12 @@ export function TaleActions({ tale }: TaleActionsProps) {
 
   return (
     <div className="mt-8 flex flex-wrap gap-3">
-      <Button>Оформити замовлення</Button>
+      <Link
+        href={`/checkout?slug=${tale.slug}`}
+        className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition-colors duration-200 bg-[var(--fg-primary)] text-white hover:opacity-90"
+      >
+        Оформити замовлення
+      </Link>
       {constructorButton}
     </div>
   );

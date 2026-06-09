@@ -34,7 +34,7 @@ export default async function EditorPage({
         </p>
       </div>
       <div className="mt-6 overflow-hidden rounded-[var(--radius-lg)] border border-app-border bg-app-surface shadow-soft">
-        <Editor initialDocument={initialDocument} className="min-h-[720px]" />
+        <Editor initialDocument={initialDocument} className="min-h-[720px]" slug={slug} />
       </div>
     </section>
   );
