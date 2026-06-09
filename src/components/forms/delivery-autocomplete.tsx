@@ -75,9 +75,13 @@ export function DeliveryAutocomplete({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const requestIdRef = React.useRef(0);
+  const query = value.trim();
+  const requestUrl =
+    !disabled && query.length >= minQueryLength
+      ? buildRequestUrl(query)
+      : null;
 
   React.useEffect(() => {
-    const query = value.trim();
     const requestId = ++requestIdRef.current;
 
     if (disabled || query.length < minQueryLength) {
@@ -89,8 +93,7 @@ export function DeliveryAutocomplete({
       return;
     }
 
-    const url = buildRequestUrl(query);
-    if (!url) {
+    if (!requestUrl) {
       setOptions([]);
       setOpen(false);
       setActiveIndex(-1);
@@ -105,7 +108,9 @@ export function DeliveryAutocomplete({
       setError(null);
 
       try {
-        const response = await fetch(url, { signal: controller.signal });
+        const response = await fetch(requestUrl, {
+          signal: controller.signal,
+        });
         const payload: unknown = await response.json();
 
         if (requestId !== requestIdRef.current) {
@@ -151,7 +156,7 @@ export function DeliveryAutocomplete({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [buildRequestUrl, disabled, minQueryLength, value]);
+  }, [disabled, minQueryLength, query, requestUrl]);
 
   function selectOption(option: DeliveryAutocompleteOption) {
     onValueChange(option.value);
