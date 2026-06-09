@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canAdminChangeTargetBlockedState,
   canAdminChangeTargetRole,
-} from './admin-users';
+} from '@/src/lib/admin-user-permissions';
 
 describe('admin user actions', () => {
   it('allows admin to manage only customers and psychologists', () => {

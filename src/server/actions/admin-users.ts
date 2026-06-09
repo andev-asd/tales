@@ -2,21 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import {
+  canAdminChangeTargetBlockedState,
+  canAdminChangeTargetRole,
+} from '@/src/lib/admin-user-permissions';
 import { getCurrentSession } from '@/src/lib/auth';
 import { db } from '@/src/lib/db';
-import { canManageUserRole, canToggleUserBlockedState } from '@/src/lib/permissions';
 import type { UserRole, UserStatus } from '@/src/lib/user-types';
-
-export function canAdminChangeTargetRole(actorRole: UserRole, targetRole: UserRole) {
-  return actorRole === 'ADMIN' && canManageUserRole(actorRole, targetRole);
-}
-
-export function canAdminChangeTargetBlockedState(
-  actorRole: UserRole,
-  targetRole: UserRole,
-) {
-  return actorRole === 'ADMIN' && canToggleUserBlockedState(actorRole, targetRole);
-}
 
 async function getActorRole() {
   const session = await getCurrentSession().catch(() => null);
