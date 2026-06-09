@@ -202,7 +202,9 @@ model Delivery {
   service        DeliveryService
   deliveryType   DeliveryType
   city           String
+  cityRef        String?
   branchNumber   String?
+  branchRef      String?
   street         String?
   house          String?
   apartment      String?
