@@ -46,6 +46,11 @@ export default async function PaymentPage({
     notFound();
   }
 
+  // Tale must exist and have a price for payment to proceed
+  if (!order.tale?.price) {
+    notFound();
+  }
+
   // 4. If already approved, redirect to order page
   if (order.payment?.status === 'APPROVED') {
     redirect(`/orders/${orderId}`);
@@ -57,7 +62,7 @@ export default async function PaymentPage({
     create: {
       orderId,
       orderReference: orderId,
-      amount: order.tale?.price ?? 0,
+      amount: order.tale.price,
     },
     update: {
       status: 'PENDING',
@@ -78,8 +83,8 @@ export default async function PaymentPage({
   const formData = buildPaymentFormData(
     {
       orderId,
-      amount: order.tale?.price ?? 0,
-      productName: order.tale?.title ?? '',
+      amount: order.tale.price,
+      productName: order.tale.title,
       merchantAccount,
       merchantDomainName,
       serviceUrl,
