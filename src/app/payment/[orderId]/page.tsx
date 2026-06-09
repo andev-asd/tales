@@ -26,7 +26,7 @@ export default async function PaymentPage({
   });
 
   if (!appUser) {
-    redirect('/login');
+    notFound();
   }
 
   const { orderId } = await params;
