@@ -15,6 +15,7 @@ describe('customer data mappers', () => {
     ).toEqual({
       title: 'Ніч без страху',
       status: 'Безкоштовно додано',
+      coverUrl: null,
     });
   });
 
