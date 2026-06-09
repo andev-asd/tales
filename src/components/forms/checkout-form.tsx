@@ -102,7 +102,7 @@ export function CheckoutForm({ tale }: Props) {
     startTransition(async () => {
       const result = await createOrderAction(tale.id, validation.data);
       if (result.ok) {
-        router.push(`/orders/${result.orderId}`);
+        router.push(`/payment/${result.orderId}`);
       } else {
         setError(result.error);
       }
