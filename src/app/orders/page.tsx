@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getCurrentSession } from '@/src/lib/auth';
+import { db } from '@/src/lib/db';
 import { mapOrderForView } from '@/src/lib/customer-data';
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge';
 import { getOrdersForUser } from '@/src/server/queries/customer';
@@ -10,7 +11,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function OrdersPage() {
   const session = await getCurrentSession().catch(() => null);
-  const orders = session?.user?.id ? await getOrdersForUser(session.user.id) : [];
+  const appUser = session?.user?.email
+    ? await db.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+      })
+    : null;
+  const orders = appUser?.id ? await getOrdersForUser(appUser.id) : [];
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 md:px-8">

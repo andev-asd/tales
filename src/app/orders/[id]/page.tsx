@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getCurrentSession } from '@/src/lib/auth';
+import { db } from '@/src/lib/db';
 import { mapOrderMessageForView } from '@/src/lib/customer-data';
 import { OrderMessageThread } from '@/src/components/orders/order-message-thread';
 import { getOrderDetailForUser } from '@/src/server/queries/customer';
@@ -14,11 +15,20 @@ export default async function OrderDetailPage({
   const session = await getCurrentSession().catch(() => null);
   const { id } = await params;
 
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     notFound();
   }
 
-  const order = await getOrderDetailForUser(id, session.user.id);
+  const appUser = await db.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  });
+
+  if (!appUser) {
+    notFound();
+  }
+
+  const order = await getOrderDetailForUser(id, appUser.id);
 
   if (!order) {
     notFound();
