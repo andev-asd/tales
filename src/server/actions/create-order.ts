@@ -63,7 +63,10 @@ export async function createOrderAction(
         service: parsed.data.service,
         deliveryType: parsed.data.deliveryType,
         city: parsed.data.city,
+        cityRef: parsed.data.cityRef || null,
         branchNumber: parsed.data.branchNumber ?? null,
+        branchRef:
+          parsed.data.deliveryType === 'BRANCH' ? parsed.data.branchRef || null : null,
         street: parsed.data.street ?? null,
         house: parsed.data.house ?? null,
         apartment: parsed.data.apartment ?? null,

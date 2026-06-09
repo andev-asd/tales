@@ -5,7 +5,13 @@ export const deliverySchema = z
     service: z.enum(['NOVA_POSHTA', 'UKRPOSHTA']),
     deliveryType: z.enum(['BRANCH', 'COURIER']),
     city: z.string().min(2, 'Вкажіть місто'),
+    cityRef: z.string().trim().max(100, 'Некоректний ідентифікатор міста').optional(),
     branchNumber: z.string().optional(),
+    branchRef: z
+      .string()
+      .trim()
+      .max(100, 'Некоректний ідентифікатор відділення')
+      .optional(),
     street: z.string().optional(),
     house: z.string().optional(),
     apartment: z.string().optional(),

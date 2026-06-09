@@ -20,6 +20,31 @@ describe('deliverySchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts optional Nova Poshta city and branch refs', () => {
+    const result = deliverySchema.safeParse({
+      ...validBranch,
+      cityRef: 'city-ref',
+      branchRef: 'warehouse-ref',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects provider refs longer than 100 characters', () => {
+    const result = deliverySchema.safeParse({
+      ...validBranch,
+      cityRef: 'x'.repeat(101),
+      branchRef: 'y'.repeat(101),
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const paths = result.error.issues.map((issue) => issue.path.join('.'))
+      expect(paths).toContain('cityRef')
+      expect(paths).toContain('branchRef')
+    }
+  })
+
   it('accepts valid COURIER delivery', () => {
     const result = deliverySchema.safeParse({
       service: 'NOVA_POSHTA',
