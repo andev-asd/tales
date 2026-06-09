@@ -172,7 +172,7 @@ export function CheckoutForm({ tale }: Props) {
               ? 'Почніть вводити номер або адресу'
               : 'Введіть відділення вручну або оберіть місто зі списку'
           }
-          minQueryLength={0}
+          minQueryLength={2}
           buildRequestUrl={(query) =>
             cityRef
               ? `/api/delivery/nova-poshta/warehouses?cityRef=${encodeURIComponent(

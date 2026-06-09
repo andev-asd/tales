@@ -203,23 +203,19 @@ export async function searchNovaPoshtaWarehouses(
   cityRef: string,
   query: string,
 ): Promise<NovaPoshtaWarehouseOption[]> {
-  const data: unknown[] = [];
-
-  for (let page = 1; page <= MAX_WAREHOUSE_PAGES; page += 1) {
-    const pageData = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
-      CityRef: cityRef,
-      FindByString: query,
-      Limit: String(WAREHOUSE_PROVIDER_LIMIT),
-      Page: String(page),
-      Language: 'UA',
-    });
-
-    data.push(...pageData);
-
-    if (pageData.length < WAREHOUSE_PROVIDER_LIMIT) {
-      break;
-    }
+  // Without a query Kyiv returns 1000+ branches across many pages — times out on serverless.
+  // Nova Poshta filters server-side via FindByString, so one page is enough when query is set.
+  if (!query) {
+    return [];
   }
+
+  const data = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
+    CityRef: cityRef,
+    FindByString: query,
+    Limit: String(WAREHOUSE_PROVIDER_LIMIT),
+    Page: '1',
+    Language: 'UA',
+  });
 
   const warehouses = new Map<string, NovaPoshtaWarehouseOption>();
 
