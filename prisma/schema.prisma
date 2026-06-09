@@ -111,6 +111,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  EXPIRED
+}
+
 enum LibrarySource {
   FREE_ADDED
   PURCHASED
@@ -193,6 +200,7 @@ model Order {
   messages       OrderMessage[]
   libraryItems   LibraryItem[]
   delivery       Delivery?
+  payment        Payment?
 }
 
 model Delivery {
@@ -242,4 +250,17 @@ model DownloadToken {
   libraryItemId String
   expiresAt     DateTime
   createdAt     DateTime @default(now())
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String        @unique
+  orderReference String       @unique
+  status        PaymentStatus @default(PENDING)
+  amount        Int
+  currency      String        @default("UAH")
+  transactionId String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
