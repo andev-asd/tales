@@ -92,6 +92,16 @@ enum OrderType {
   CUSTOM_PSYCHOLOGIST
 }
 
+enum DeliveryService {
+  NOVA_POSHTA
+  UKRPOSHTA
+}
+
+enum DeliveryType {
+  BRANCH
+  COURIER
+}
+
 enum OrderStatus {
   NEW
   IN_REVIEW
@@ -182,6 +192,23 @@ model Order {
   tale           Tale?          @relation(fields: [taleId], references: [id])
   messages       OrderMessage[]
   libraryItems   LibraryItem[]
+  delivery       Delivery?
+}
+
+model Delivery {
+  id             String          @id @default(cuid())
+  orderId        String          @unique
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service        DeliveryService
+  deliveryType   DeliveryType
+  city           String
+  branchNumber   String?
+  street         String?
+  house          String?
+  apartment      String?
+  recipientName  String
+  recipientPhone String
+  createdAt      DateTime        @default(now())
 }
 
 model OrderMessage {
