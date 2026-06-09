@@ -180,7 +180,7 @@ describe('Nova Poshta server client', () => {
     expect(requestBody.methodProperties).not.toHaveProperty('SettlementRef');
   });
 
-  it('includes parcel lockers when the provider returns branches first', async () => {
+  it('returns all branches and parcel lockers from the provider response', async () => {
     const branches = Array.from({ length: 20 }, (_, index) => ({
       Ref: `branch-${index}`,
       Number: String(index + 1),
@@ -203,11 +203,57 @@ describe('Nova Poshta server client', () => {
 
     const result = await searchNovaPoshtaWarehouses('city-ref', '');
 
-    expect(result).toHaveLength(20);
-    expect(result.filter((option) => option.type === 'BRANCH')).toHaveLength(10);
+    expect(result).toHaveLength(40);
+    expect(result.filter((option) => option.type === 'BRANCH')).toHaveLength(20);
     expect(
       result.filter((option) => option.type === 'PARCEL_LOCKER'),
-    ).toHaveLength(10);
+    ).toHaveLength(20);
+  });
+
+  it('loads subsequent warehouse pages until the provider response is exhausted', async () => {
+    const firstPage = Array.from({ length: 500 }, (_, index) => ({
+      Ref: `warehouse-${index}`,
+      Number: String(index + 1),
+      Description: `Відділення №${index + 1}`,
+      CategoryOfWarehouse: 'Branch',
+    }));
+
+    mocks.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          success: true,
+          data: firstPage,
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          success: true,
+          data: [
+            {
+              Ref: 'locker-last',
+              Number: '9999',
+              Description: 'Поштомат №9999',
+              CategoryOfWarehouse: 'Postomat',
+            },
+          ],
+        }),
+      );
+
+    const result = await searchNovaPoshtaWarehouses('city-ref', '');
+
+    expect(result).toHaveLength(501);
+    expect(result.at(-1)).toEqual(
+      expect.objectContaining({
+        ref: 'locker-last',
+        type: 'PARCEL_LOCKER',
+      }),
+    );
+    expect(mocks.fetch).toHaveBeenCalledTimes(2);
+
+    const secondRequestBody = JSON.parse(
+      mocks.fetch.mock.calls[1]?.[1]?.body as string,
+    );
+    expect(secondRequestBody.methodProperties.Page).toBe('2');
   });
 
   it('filters malformed options and limits provider results to 20', async () => {

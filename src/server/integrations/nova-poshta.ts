@@ -9,7 +9,7 @@ import type {
 const NOVA_POSHTA_URL = 'https://api.novaposhta.ua/v2.0/json/';
 const RESULT_LIMIT = 20;
 const WAREHOUSE_PROVIDER_LIMIT = 500;
-const WAREHOUSE_TYPE_LIMIT = RESULT_LIMIT / 2;
+const MAX_WAREHOUSE_PAGES = 20;
 const REQUEST_TIMEOUT_MS = 5_000;
 
 type NovaPoshtaEnvelope = {
@@ -203,16 +203,25 @@ export async function searchNovaPoshtaWarehouses(
   cityRef: string,
   query: string,
 ): Promise<NovaPoshtaWarehouseOption[]> {
-  const data = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
-    CityRef: cityRef,
-    FindByString: query,
-    Limit: String(WAREHOUSE_PROVIDER_LIMIT),
-    Page: '1',
-    Language: 'UA',
-  });
+  const data: unknown[] = [];
 
-  const branches: NovaPoshtaWarehouseOption[] = [];
-  const parcelLockers: NovaPoshtaWarehouseOption[] = [];
+  for (let page = 1; page <= MAX_WAREHOUSE_PAGES; page += 1) {
+    const pageData = await callNovaPoshta('AddressGeneral', 'getWarehouses', {
+      CityRef: cityRef,
+      FindByString: query,
+      Limit: String(WAREHOUSE_PROVIDER_LIMIT),
+      Page: String(page),
+      Language: 'UA',
+    });
+
+    data.push(...pageData);
+
+    if (pageData.length < WAREHOUSE_PROVIDER_LIMIT) {
+      break;
+    }
+  }
+
+  const warehouses = new Map<string, NovaPoshtaWarehouseOption>();
 
   for (const value of data) {
     const warehouse = normalizeWarehouse(value);
@@ -236,37 +245,8 @@ export async function searchNovaPoshtaWarehouses(
       label,
     };
 
-    if (isParcelLocker) {
-      parcelLockers.push(option);
-    } else {
-      branches.push(option);
-    }
+    warehouses.set(option.ref, option);
   }
 
-  const selectedBranches = branches.slice(0, WAREHOUSE_TYPE_LIMIT);
-  const selectedParcelLockers = parcelLockers.slice(
-    0,
-    WAREHOUSE_TYPE_LIMIT,
-  );
-  const selected = [...selectedBranches, ...selectedParcelLockers];
-
-  if (selected.length < RESULT_LIMIT) {
-    selected.push(
-      ...branches.slice(
-        selectedBranches.length,
-        selectedBranches.length + RESULT_LIMIT - selected.length,
-      ),
-    );
-  }
-
-  if (selected.length < RESULT_LIMIT) {
-    selected.push(
-      ...parcelLockers.slice(
-        selectedParcelLockers.length,
-        selectedParcelLockers.length + RESULT_LIMIT - selected.length,
-      ),
-    );
-  }
-
-  return selected;
+  return [...warehouses.values()];
 }
