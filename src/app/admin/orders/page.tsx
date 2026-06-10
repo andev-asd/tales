@@ -6,7 +6,8 @@ import { db } from '@/src/lib/db';
 import { getAdminOrders } from '@/src/server/queries/admin-orders';
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge';
 import { mapOrderForView } from '@/src/lib/customer-data';
-import { getUnreadCountsForUser } from '@/src/server/queries/unread-counts';
+import { getUnreadCountsForUser, getTotalUnreadForUser } from '@/src/server/queries/unread-counts';
+import { AdminLiveStats } from '@/src/components/admin/admin-live-stats';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,15 +57,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     redirect('/login');
   }
 
-  const [orders, unreadCounts] = await Promise.all([
+  const [orders, unreadCounts, newOrdersCount, totalUnread] = await Promise.all([
     getAdminOrders({ status: currentStatus }),
     appUser?.id ? getUnreadCountsForUser(appUser.id) : Promise.resolve(new Map<string, number>()),
+    db.order.count({ where: { status: 'NEW' } }),
+    appUser?.id ? getTotalUnreadForUser(appUser.id) : Promise.resolve(0),
   ]);
 
   return (
     <DashboardShell title="Адмінка" items={adminItems}>
       <div className="space-y-6">
         <h1 className="font-display text-4xl text-app-text">Замовлення</h1>
+
+        <AdminLiveStats initial={{ newOrders: newOrdersCount, unreadMessages: totalUnread }} />
 
         <div className="flex flex-wrap gap-2">
           {statuses.map((s) => (
