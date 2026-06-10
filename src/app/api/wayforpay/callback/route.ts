@@ -34,14 +34,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  console.log('WayForPay callback:', {
-    orderReference: body.orderReference,
-    transactionStatus: body.transactionStatus,
-    reasonCode: body.reasonCode,
-    amount: body.amount,
-    merchantAccount: body.merchantAccount,
-  });
-
   const statusMap: Record<string, PaymentStatus> = {
     Approved: PaymentStatus.APPROVED,
     Declined: PaymentStatus.DECLINED,

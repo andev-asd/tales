@@ -4,6 +4,7 @@ import { db } from '@/src/lib/db';
 import { mapOrderForView } from '@/src/lib/customer-data';
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge';
 import { getOrdersForUser } from '@/src/server/queries/customer';
+import { getUnreadCountsForUser } from '@/src/server/queries/unread-counts';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ export default async function OrdersPage() {
       })
     : null;
   const orders = appUser?.id ? await getOrdersForUser(appUser.id) : [];
+  const unreadCounts = appUser?.id ? await getUnreadCountsForUser(appUser.id) : new Map<string, number>();
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 md:px-8">
@@ -48,6 +50,8 @@ export default async function OrdersPage() {
               year: 'numeric',
             });
 
+            const unread = unreadCounts.get(order.id) ?? 0;
+
             return (
               <div
                 key={order.id}
@@ -55,9 +59,16 @@ export default async function OrdersPage() {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1 min-w-0">
-                    <p className="font-medium text-app-text truncate">
-                      {order.tale?.title ?? view.typeLabel}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-app-text truncate">
+                        {order.tale?.title ?? view.typeLabel}
+                      </p>
+                      {unread > 0 && (
+                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white leading-none">
+                          {unread > 99 ? '99+' : unread}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-app-muted">
                       #{order.id.slice(0, 8).toUpperCase()} · {date}
                     </p>

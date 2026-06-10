@@ -6,6 +6,7 @@ import { db } from '@/src/lib/db';
 import { mapSessionToHeaderUser } from '@/src/lib/session-user';
 import { SiteFooter } from '@/src/components/layout/site-footer';
 import { SiteHeader } from '@/src/components/layout/site-header';
+import { getTotalUnreadForUser } from '@/src/server/queries/unread-counts';
 
 const display = Fraunces({
   subsets: ['latin'],
@@ -52,11 +53,12 @@ export default async function RootLayout({
         role: appUser?.role ?? baseHeaderUser.role ?? null,
       }
     : null;
+  const totalUnread = appUser?.id ? await getTotalUnreadForUser(appUser.id) : 0;
 
   return (
     <html lang="uk" translate="no" className="notranslate">
       <body className={`${display.variable} ${body.variable}`}>
-        <SiteHeader user={headerUser} />
+        <SiteHeader user={headerUser} unreadCount={totalUnread} />
         <main>{children}</main>
         <SiteFooter />
       </body>

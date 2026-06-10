@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { getSupabaseBrowserClient } from '@/src/lib/supabase-browser';
 import type { ChatMessagePayload } from '@/src/lib/supabase-broadcast';
+import { markOrderChatSeen } from '@/src/server/actions/mark-chat-seen';
 
 type SendResult =
   | { ok: true; message: ChatMessagePayload }
@@ -63,10 +64,16 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
       if (data.messages.length > 0) {
         lastSeenRef.current = data.messages[data.messages.length - 1].createdAt;
         setMessages((prev) => addUnique(prev, data.messages));
+        void markOrderChatSeen(orderId);
       }
     } catch {
       // network issue — will retry on next insert event
     }
+  }, [orderId]);
+
+  // Mark chat as seen when component mounts (user opened the chat)
+  useEffect(() => {
+    void markOrderChatSeen(orderId);
   }, [orderId]);
 
   // Subscribe to Postgres Changes on OrderMessage table.

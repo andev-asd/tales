@@ -5,9 +5,12 @@ import { UserMenu } from './user-menu';
 type HeaderUser = {
   name?: string | null;
   image?: string | null;
+  id?: string | null;
+  email?: string | null;
+  role?: 'CUSTOMER' | 'PSYCHOLOGIST' | 'ADMIN' | 'SUPERADMIN' | null;
 } | null;
 
-export function SiteHeader({ user }: { user: HeaderUser }) {
+export function SiteHeader({ user, unreadCount = 0 }: { user: HeaderUser; unreadCount?: number }) {
   return (
     <header className="sticky top-0 z-40 border-b border-app-border bg-[rgba(247,242,232,0.92)] backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-0" style={{ height: 72 }}>
@@ -24,7 +27,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
         </nav>
 
         {user ? (
-          <UserMenu user={user} />
+          <UserMenu user={user} unreadCount={unreadCount} />
         ) : (
           <Link
             href="/login"

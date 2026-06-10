@@ -6,6 +6,7 @@ import { db } from '@/src/lib/db';
 import { getAdminOrders } from '@/src/server/queries/admin-orders';
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge';
 import { mapOrderForView } from '@/src/lib/customer-data';
+import { getUnreadCountsForUser } from '@/src/server/queries/unread-counts';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const appUser = session?.user?.email
     ? await db.user.findUnique({
         where: { email: session.user.email },
-        select: { role: true },
+        select: { id: true, role: true },
       })
     : null;
 
@@ -55,7 +56,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     redirect('/login');
   }
 
-  const orders = await getAdminOrders({ status: currentStatus });
+  const [orders, unreadCounts] = await Promise.all([
+    getAdminOrders({ status: currentStatus }),
+    appUser?.id ? getUnreadCountsForUser(appUser.id) : Promise.resolve(new Map<string, number>()),
+  ]);
 
   return (
     <DashboardShell title="Адмінка" items={adminItems}>
@@ -92,6 +96,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 : '—';
               const amount = order.payment?.amount ?? order.tale?.price ?? null;
               const createdDate = order.createdAt.toLocaleDateString('uk-UA');
+              const unread = unreadCounts.get(order.id) ?? 0;
 
               return (
                 <div
@@ -100,12 +105,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <p className="font-medium text-app-text">
-                        {order.customer?.name ?? '—'}{' '}
-                        <span className="text-sm text-app-secondary">
-                          {order.customer?.email ?? ''}
-                        </span>
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-app-text">
+                          {order.customer?.name ?? '—'}{' '}
+                          <span className="text-sm text-app-secondary">
+                            {order.customer?.email ?? ''}
+                          </span>
+                        </p>
+                        {unread > 0 && (
+                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white leading-none">
+                            {unread > 99 ? '99+' : unread}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-app-secondary">
                         {order.tale?.title ?? '—'}
                       </p>

@@ -12,9 +12,19 @@ type UserMenuProps = {
     image?: string | null;
     role?: 'CUSTOMER' | 'PSYCHOLOGIST' | 'ADMIN' | 'SUPERADMIN' | null;
   };
+  unreadCount?: number;
 };
 
-export function UserMenu({ user }: UserMenuProps) {
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white leading-none">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
+
+export function UserMenu({ user, unreadCount = 0 }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -50,14 +60,7 @@ export function UserMenu({ user }: UserMenuProps) {
     setOpen(false);
   };
 
-  const roleLinks = [
-    user.role === 'ADMIN' || user.role === 'SUPERADMIN'
-      ? { href: '/admin', label: 'Адмінка' }
-      : null,
-    user.role === 'PSYCHOLOGIST'
-      ? { href: '/psychologist', label: 'Кабінет психолога' }
-      : null,
-  ].filter(Boolean) as Array<{ href: string; label: string }>;
+  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
   return (
     <div ref={rootRef} className="relative">
@@ -66,7 +69,7 @@ export function UserMenu({ user }: UserMenuProps) {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-3 rounded-full border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text shadow-soft"
+        className="relative flex items-center gap-3 rounded-full border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text shadow-soft"
       >
         {user.image && !avatarFailed ? (
           <img
@@ -81,6 +84,11 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
         )}
         <span>{user.name ?? "Користувач"}</span>
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </button>
 
       {open ? (
@@ -88,17 +96,27 @@ export function UserMenu({ user }: UserMenuProps) {
           role="menu"
           className="absolute right-0 top-[calc(100%+12px)] z-50 min-w-[220px] rounded-[var(--radius-lg)] border border-app-border bg-app-surface p-2 shadow-soft"
         >
-          {roleLinks.map((link) => (
+          {isAdmin && (
             <Link
-              key={link.href}
-              href={link.href}
+              href="/admin"
+              role="menuitem"
+              onClick={handleNavigate}
+              className="flex items-center rounded-[var(--radius-md)] px-4 py-3 text-sm text-app-text hover:bg-app-elevated"
+            >
+              Адмінка
+              <UnreadBadge count={unreadCount} />
+            </Link>
+          )}
+          {user.role === 'PSYCHOLOGIST' && (
+            <Link
+              href="/psychologist"
               role="menuitem"
               onClick={handleNavigate}
               className="block rounded-[var(--radius-md)] px-4 py-3 text-sm text-app-text hover:bg-app-elevated"
             >
-              {link.label}
+              Кабінет психолога
             </Link>
-          ))}
+          )}
           <Link
             href="/library"
             role="menuitem"
@@ -111,17 +129,10 @@ export function UserMenu({ user }: UserMenuProps) {
             href="/orders"
             role="menuitem"
             onClick={handleNavigate}
-            className="block rounded-[var(--radius-md)] px-4 py-3 text-sm text-app-text hover:bg-app-elevated"
+            className="flex items-center rounded-[var(--radius-md)] px-4 py-3 text-sm text-app-text hover:bg-app-elevated"
           >
             Мої замовлення
-          </Link>
-          <Link
-            href="/orders"
-            role="menuitem"
-            onClick={handleNavigate}
-            className="block rounded-[var(--radius-md)] px-4 py-3 text-sm text-app-text hover:bg-app-elevated"
-          >
-            Повідомлення
+            {!isAdmin && <UnreadBadge count={unreadCount} />}
           </Link>
           <Link
             href="/account/password"
