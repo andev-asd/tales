@@ -4,6 +4,8 @@ import { getCurrentSession } from '@/src/lib/auth'
 import { db } from '@/src/lib/db'
 import { OrderStatus } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { mapOrderMessageForView } from '@/src/lib/customer-data'
+import { broadcastOrderChatMessage } from '@/src/lib/supabase-broadcast'
 
 // Allowed transitions for admin (full control)
 const adminTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
@@ -77,15 +79,14 @@ export async function sendAdminMessage(orderId: string, body: string) {
   const order = await db.order.findUnique({ where: { id: orderId }, select: { id: true } })
   if (!order) return { ok: false, error: 'Замовлення не знайдено' }
 
-  // 4. Create message
-  await db.orderMessage.create({
-    data: {
-      orderId,
-      authorId: user.id,
-      body: trimmed,
-    },
+  // 4. Create message and broadcast
+  const created = await db.orderMessage.create({
+    data: { orderId, authorId: user.id, body: trimmed },
+    include: { author: true },
   })
 
-  revalidatePath(`/admin/orders/${orderId}`)
+  const view = mapOrderMessageForView(created)
+  await broadcastOrderChatMessage(orderId, view).catch(console.error)
+
   return { ok: true as const }
 }

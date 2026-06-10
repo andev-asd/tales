@@ -75,6 +75,7 @@ export function mapOrderMessageForView(message: {
   return {
     id: message.id,
     authorLabel: roleMap[message.author.role],
+    authorRole: message.author.role,
     body: message.body,
     createdAt: message.createdAt.toISOString(),
   };

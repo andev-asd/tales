@@ -5,9 +5,9 @@ import { db } from '@/src/lib/db'
 import { getAdminOrderDetail } from '@/src/server/queries/admin-orders'
 import { mapOrderForView, mapOrderMessageForView } from '@/src/lib/customer-data'
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge'
-import { OrderMessageThread } from '@/src/components/orders/order-message-thread'
+import { OrderRealtimeChat } from '@/src/components/orders/order-realtime-chat'
 import { AdminOrderStatusForm } from '@/src/components/admin/order-status-form'
-import { AdminOrderSendMessageForm } from '@/src/components/admin/order-send-message-form'
+import { sendAdminMessage } from '@/src/server/actions/admin-orders'
 import { DashboardShell } from '@/src/components/layout/dashboard-shell'
 import { OrderStatus } from '@prisma/client'
 
@@ -165,19 +165,21 @@ export default async function AdminOrderDetailPage({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <AdminOrderStatusForm
-            orderId={order.id}
-            currentStatus={order.status as OrderStatus}
-          />
-          <AdminOrderSendMessageForm orderId={order.id} />
-        </div>
+        {/* Status form */}
+        <AdminOrderStatusForm
+          orderId={order.id}
+          currentStatus={order.status as OrderStatus}
+        />
 
-        {/* Messages section */}
+        {/* Chat */}
         <div className="space-y-4">
           <h2 className="font-display text-2xl text-app-text">Переписка</h2>
-          <OrderMessageThread messages={messages} />
+          <OrderRealtimeChat
+            orderId={order.id}
+            initialMessages={messages}
+            myRole={appUser.role as 'ADMIN' | 'SUPERADMIN'}
+            sendAction={sendAdminMessage}
+          />
         </div>
       </div>
     </DashboardShell>
