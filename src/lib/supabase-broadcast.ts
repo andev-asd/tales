@@ -25,8 +25,12 @@ export async function broadcastOrderChatMessage(
       messages: [
         {
           topic: `realtime:order-chat:${orderId}`,
-          event: 'message',
-          payload: message,
+          event: 'broadcast',
+          payload: {
+            type: 'broadcast',
+            event: 'message',
+            payload: message,
+          },
         },
       ],
     }),

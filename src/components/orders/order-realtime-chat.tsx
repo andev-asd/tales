@@ -4,11 +4,15 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { getSupabaseBrowserClient } from '@/src/lib/supabase-browser';
 import type { ChatMessagePayload } from '@/src/lib/supabase-broadcast';
 
+type SendResult =
+  | { ok: true; message: ChatMessagePayload }
+  | { ok: false; error: string };
+
 type Props = {
   orderId: string;
   initialMessages: ChatMessagePayload[];
   myRole: 'CUSTOMER' | 'PSYCHOLOGIST' | 'ADMIN' | 'SUPERADMIN';
-  sendAction: (orderId: string, body: string) => Promise<{ ok: boolean; error?: string }>;
+  sendAction: (orderId: string, body: string) => Promise<SendResult>;
 };
 
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPERADMIN', 'PSYCHOLOGIST']);
@@ -27,6 +31,11 @@ function formatTime(iso: string) {
   });
 }
 
+function addUnique(prev: ChatMessagePayload[], msg: ChatMessagePayload): ChatMessagePayload[] {
+  if (prev.some((m) => m.id === msg.id)) return prev;
+  return [...prev, msg];
+}
+
 export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction }: Props) {
   const [messages, setMessages] = useState<ChatMessagePayload[]>(initialMessages);
   const [body, setBody] = useState('');
@@ -34,18 +43,18 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Subscribe to realtime broadcast
+  // Subscribe to realtime broadcast for the other party's messages
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     const channel = supabase
       .channel(`order-chat:${orderId}`)
-      .on('broadcast', { event: 'message' }, ({ payload }: { payload: ChatMessagePayload }) => {
-        setMessages((prev) => {
-          // Deduplicate by id
-          if (prev.some((m) => m.id === payload.id)) return prev;
-          return [...prev, payload];
-        });
-      })
+      .on(
+        'broadcast',
+        { event: 'message' },
+        ({ payload }: { payload: ChatMessagePayload }) => {
+          setMessages((prev) => addUnique(prev, payload));
+        },
+      )
       .subscribe();
 
     return () => {
@@ -62,12 +71,15 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
     const trimmed = body.trim();
     if (!trimmed) return;
     setError('');
+    setBody('');
 
     startTransition(async () => {
       const result = await sendAction(orderId, trimmed);
       if (result.ok) {
-        setBody('');
+        // Add sender's own message immediately; broadcast deduplicates for the other party
+        setMessages((prev) => addUnique(prev, result.message));
       } else {
+        setBody(trimmed); // restore on error
         setError(result.error ?? 'Помилка надсилання');
       }
     });
