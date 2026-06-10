@@ -3,7 +3,6 @@
 import { db } from '@/src/lib/db';
 import { getCurrentSession } from '@/src/lib/auth';
 import { mapOrderMessageForView } from '@/src/lib/customer-data';
-import { broadcastOrderChatMessage } from '@/src/lib/supabase-broadcast';
 
 export async function sendCustomerMessage(
   orderId: string,
@@ -34,8 +33,5 @@ export async function sendCustomerMessage(
     include: { author: true },
   });
 
-  const view = mapOrderMessageForView(created);
-  await broadcastOrderChatMessage(orderId, view).catch(console.error);
-
-  return { ok: true as const, message: view };
+  return { ok: true as const, message: mapOrderMessageForView(created) };
 }

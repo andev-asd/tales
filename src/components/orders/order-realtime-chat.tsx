@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { getSupabaseBrowserClient } from '@/src/lib/supabase-browser';
 import type { ChatMessagePayload } from '@/src/lib/supabase-broadcast';
 
 type SendResult =
@@ -14,7 +15,6 @@ type Props = {
   sendAction: (orderId: string, body: string) => Promise<SendResult>;
 };
 
-const POLL_INTERVAL_MS = 3000;
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPERADMIN', 'PSYCHOLOGIST']);
 
 function isMyMessage(authorRole: string, myRole: string): boolean {
@@ -31,7 +31,10 @@ function formatTime(iso: string) {
   });
 }
 
-function addUnique(prev: ChatMessagePayload[], incoming: ChatMessagePayload[]): ChatMessagePayload[] {
+function addUnique(
+  prev: ChatMessagePayload[],
+  incoming: ChatMessagePayload[],
+): ChatMessagePayload[] {
   const ids = new Set(prev.map((m) => m.id));
   const news = incoming.filter((m) => !ids.has(m.id));
   return news.length ? [...prev, ...news] : prev;
@@ -43,13 +46,13 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
-  // Track the latest message time to only fetch new ones
   const lastSeenRef = useRef<string>(
     initialMessages.length > 0
       ? initialMessages[initialMessages.length - 1].createdAt
       : new Date(0).toISOString(),
   );
 
+  // Fetch messages newer than lastSeenRef from our API
   const fetchNew = useCallback(async () => {
     try {
       const res = await fetch(
@@ -62,15 +65,42 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
         setMessages((prev) => addUnique(prev, data.messages));
       }
     } catch {
-      // network hiccup — will retry next interval
+      // network issue — will retry on next insert event
     }
   }, [orderId]);
 
-  // Poll for new messages from the other party
+  // Subscribe to Postgres Changes on OrderMessage table.
+  // When a new row is inserted for this order, fetch the full message (with author) via API.
+  // Zero DB queries between messages — only fires on actual inserts.
   useEffect(() => {
-    const id = setInterval(fetchNew, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [fetchNew]);
+    const supabase = getSupabaseBrowserClient();
+
+    const channel = supabase
+      .channel(`order-messages:${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'OrderMessage',
+          filter: `orderId=eq.${orderId}`,
+        },
+        () => {
+          // Payload has raw DB row — fetch formatted version (with author role/label) from our API
+          void fetchNew();
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // Fetch any messages that arrived between SSR and subscription
+          void fetchNew();
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [orderId, fetchNew]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -86,7 +116,6 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
     startTransition(async () => {
       const result = await sendAction(orderId, trimmed);
       if (result.ok) {
-        // Show sender's own message immediately; polling deduplicates later
         setMessages((prev) => addUnique(prev, [result.message]));
         lastSeenRef.current = result.message.createdAt;
       } else {
@@ -111,7 +140,10 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
           messages.map((msg) => {
             const mine = isMyMessage(msg.authorRole, myRole);
             return (
-              <div key={msg.id} className={`flex flex-col gap-1 ${mine ? 'items-end' : 'items-start'}`}>
+              <div
+                key={msg.id}
+                className={`flex flex-col gap-1 ${mine ? 'items-end' : 'items-start'}`}
+              >
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     mine
