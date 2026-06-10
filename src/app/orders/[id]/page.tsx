@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getCurrentSession } from '@/src/lib/auth';
 import { db } from '@/src/lib/db';
-import { mapOrderMessageForView } from '@/src/lib/customer-data';
+import { mapOrderForView, mapOrderMessageForView } from '@/src/lib/customer-data';
 import { OrderMessageThread } from '@/src/components/orders/order-message-thread';
 import { getOrderDetailForUser } from '@/src/server/queries/customer';
 
@@ -36,6 +36,7 @@ export default async function OrderDetailPage({
 
   const messages = order.messages.map(mapOrderMessageForView);
   const resultIsAvailable = order.libraryItems.length > 0;
+  const view = mapOrderForView({ type: order.type, status: order.status, hasAccessibleResult: resultIsAvailable });
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-16 md:px-8">
@@ -45,12 +46,8 @@ export default async function OrderDetailPage({
           Тут зберігається історія переписки з психологом або адміністратором по замовленню.
         </p>
         <div className="rounded-[var(--radius-lg)] border border-app-border bg-app-surface p-6 shadow-soft">
-          <p className="text-sm text-app-secondary">Статус: {order.status}</p>
-          <p className="mt-2 text-sm text-app-secondary">
-            {resultIsAvailable
-              ? 'Казка вже доступна у бібліотеці.'
-              : 'Результат ще не доступний у бібліотеці.'}
-          </p>
+          <p className="text-sm text-app-secondary">Статус: {view.statusLabel}</p>
+          <p className="mt-2 text-sm text-app-secondary">{view.resultStateLabel}</p>
         </div>
         <OrderMessageThread messages={messages} />
       </div>

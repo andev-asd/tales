@@ -55,6 +55,9 @@ export function TaleForm({
   const [state, formAction] = useActionState(resolvedAction, initialTaleFormState);
   const [title, setTitle] = useState(defaultValues?.title ?? '');
   const [slug, setSlug] = useState(defaultValues?.slug ?? '');
+  const [accessType, setAccessType] = useState<'FREE' | 'PAID' | 'PERSONALIZABLE'>(
+    defaultValues?.accessType ?? 'FREE',
+  );
   const slugTouchedRef = useRef(Boolean(defaultValues?.slug));
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -139,7 +142,11 @@ export function TaleForm({
             <p id="tale-full-description-error" className="text-sm text-app-secondary">{fullDescriptionError}</p>
           ) : null}
         </div>
-        <Select name="accessType" defaultValue={defaultValues?.accessType ?? 'FREE'}>
+        <Select
+          name="accessType"
+          value={accessType}
+          onChange={(e) => setAccessType(e.target.value as 'FREE' | 'PAID' | 'PERSONALIZABLE')}
+        >
           <option value="FREE">Безкоштовна</option>
           <option value="PAID">Платна</option>
           <option value="PERSONALIZABLE">Персоналізація</option>
@@ -150,6 +157,14 @@ export function TaleForm({
           min="0"
           placeholder="Ціна"
           defaultValue={defaultValues?.price ?? ''}
+          onChange={(e) => {
+            const val = e.target.value.trim();
+            if (val && Number(val) > 0 && accessType === 'FREE') {
+              setAccessType('PAID');
+            } else if (!val && accessType === 'PAID') {
+              setAccessType('FREE');
+            }
+          }}
         />
         <Input
           name="personalizationPrice"
