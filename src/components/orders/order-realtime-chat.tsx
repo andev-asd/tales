@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
-import { getSupabaseBrowserClient } from '@/src/lib/supabase-browser';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import type { ChatMessagePayload } from '@/src/lib/supabase-broadcast';
 
 type SendResult =
@@ -15,6 +14,7 @@ type Props = {
   sendAction: (orderId: string, body: string) => Promise<SendResult>;
 };
 
+const POLL_INTERVAL_MS = 3000;
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPERADMIN', 'PSYCHOLOGIST']);
 
 function isMyMessage(authorRole: string, myRole: string): boolean {
@@ -31,9 +31,10 @@ function formatTime(iso: string) {
   });
 }
 
-function addUnique(prev: ChatMessagePayload[], msg: ChatMessagePayload): ChatMessagePayload[] {
-  if (prev.some((m) => m.id === msg.id)) return prev;
-  return [...prev, msg];
+function addUnique(prev: ChatMessagePayload[], incoming: ChatMessagePayload[]): ChatMessagePayload[] {
+  const ids = new Set(prev.map((m) => m.id));
+  const news = incoming.filter((m) => !ids.has(m.id));
+  return news.length ? [...prev, ...news] : prev;
 }
 
 export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction }: Props) {
@@ -42,27 +43,36 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Track the latest message time to only fetch new ones
+  const lastSeenRef = useRef<string>(
+    initialMessages.length > 0
+      ? initialMessages[initialMessages.length - 1].createdAt
+      : new Date(0).toISOString(),
+  );
 
-  // Subscribe to realtime broadcast for the other party's messages
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    const channel = supabase
-      .channel(`order-chat:${orderId}`)
-      .on(
-        'broadcast',
-        { event: 'message' },
-        ({ payload }: { payload: ChatMessagePayload }) => {
-          setMessages((prev) => addUnique(prev, payload));
-        },
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+  const fetchNew = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/orders/${orderId}/messages?after=${encodeURIComponent(lastSeenRef.current)}`,
+      );
+      if (!res.ok) return;
+      const data = (await res.json()) as { messages: ChatMessagePayload[] };
+      if (data.messages.length > 0) {
+        lastSeenRef.current = data.messages[data.messages.length - 1].createdAt;
+        setMessages((prev) => addUnique(prev, data.messages));
+      }
+    } catch {
+      // network hiccup — will retry next interval
+    }
   }, [orderId]);
 
-  // Scroll to bottom on new messages
+  // Poll for new messages from the other party
+  useEffect(() => {
+    const id = setInterval(fetchNew, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [fetchNew]);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -76,10 +86,11 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
     startTransition(async () => {
       const result = await sendAction(orderId, trimmed);
       if (result.ok) {
-        // Add sender's own message immediately; broadcast deduplicates for the other party
-        setMessages((prev) => addUnique(prev, result.message));
+        // Show sender's own message immediately; polling deduplicates later
+        setMessages((prev) => addUnique(prev, [result.message]));
+        lastSeenRef.current = result.message.createdAt;
       } else {
-        setBody(trimmed); // restore on error
+        setBody(trimmed);
         setError(result.error ?? 'Помилка надсилання');
       }
     });
@@ -93,7 +104,6 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Message thread */}
       <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-app-border bg-app-surface p-4 shadow-soft min-h-[120px]">
         {messages.length === 0 ? (
           <p className="text-sm text-app-muted">Повідомлень поки немає.</p>
@@ -121,7 +131,6 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
         <div ref={bottomRef} />
       </div>
 
-      {/* Send form */}
       <div className="flex flex-col gap-2">
         <textarea
           value={body}
