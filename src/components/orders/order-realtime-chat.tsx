@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/src/lib/supabase-browser';
 import type { ChatMessagePayload } from '@/src/lib/supabase-broadcast';
 import { markOrderChatSeen } from '@/src/server/actions/mark-chat-seen';
@@ -42,6 +43,7 @@ function addUnique(
 }
 
 export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction }: Props) {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessagePayload[]>(initialMessages);
   const [body, setBody] = useState('');
   const [error, setError] = useState('');
@@ -71,10 +73,10 @@ export function OrderRealtimeChat({ orderId, initialMessages, myRole, sendAction
     }
   }, [orderId]);
 
-  // Mark chat as seen when component mounts (user opened the chat)
+  // Mark chat as seen when component mounts, then refresh server components so the header badge clears
   useEffect(() => {
-    void markOrderChatSeen(orderId);
-  }, [orderId]);
+    void markOrderChatSeen(orderId).then(() => router.refresh());
+  }, [orderId, router]);
 
   // Subscribe to Postgres Changes on OrderMessage table.
   // When a new row is inserted for this order, fetch the full message (with author) via API.
