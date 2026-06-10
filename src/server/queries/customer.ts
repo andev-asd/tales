@@ -22,9 +22,9 @@ export async function getOrdersForUser(userId: string) {
   return db.order.findMany({
     where: { customerId: userId },
     include: {
-      tale: true,
-      messages: true,
-      libraryItems: true,
+      tale: { select: { title: true } },
+      payment: { select: { status: true, amount: true } },
+      libraryItems: { select: { id: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
