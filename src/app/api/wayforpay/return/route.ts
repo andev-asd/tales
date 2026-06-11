@@ -14,18 +14,17 @@ export async function POST(req: NextRequest) {
   }
 
   const destination = orderReference
-    ? `/orders/${orderReference}`
+    ? `/orders/${orderReference}?paid=1`
     : '/orders'
 
   return NextResponse.redirect(new URL(destination, req.nextUrl.origin), 303)
 }
 
-// Also handle GET in case of a plain redirect
 export async function GET(req: NextRequest) {
   const orderReference = req.nextUrl.searchParams.get('orderReference')
 
   const destination = orderReference
-    ? `/orders/${orderReference}`
+    ? `/orders/${orderReference}?paid=1`
     : '/orders'
 
   return NextResponse.redirect(new URL(destination, req.nextUrl.origin), 303)
