@@ -53,7 +53,7 @@ export default async function RootLayout({
         role: appUser?.role ?? baseHeaderUser.role ?? null,
       }
     : null;
-  const totalUnread = appUser?.id ? await getTotalUnreadForUser(appUser.id) : 0;
+  const totalUnread = appUser?.id ? await getTotalUnreadForUser(appUser.id, appUser.role) : 0;
 
   return (
     <html lang="uk" translate="no" className="notranslate">

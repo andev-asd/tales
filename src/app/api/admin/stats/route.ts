@@ -17,7 +17,7 @@ export async function GET() {
 
   const [newOrders, unreadMessages] = await Promise.all([
     db.order.count({ where: { status: 'NEW' } }),
-    getTotalUnreadForUser(user.id),
+    getTotalUnreadForUser(user.id, user.role),
   ]);
 
   return NextResponse.json({ newOrders, unreadMessages });

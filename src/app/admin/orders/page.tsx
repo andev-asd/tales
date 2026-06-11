@@ -59,9 +59,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   const [orders, unreadCounts, newOrdersCount, totalUnread] = await Promise.all([
     getAdminOrders({ status: currentStatus }),
-    appUser?.id ? getUnreadCountsForUser(appUser.id) : Promise.resolve(new Map<string, number>()),
+    appUser?.id ? getUnreadCountsForUser(appUser.id, appUser.role) : Promise.resolve(new Map<string, number>()),
     db.order.count({ where: { status: 'NEW' } }),
-    appUser?.id ? getTotalUnreadForUser(appUser.id) : Promise.resolve(0),
+    appUser?.id ? getTotalUnreadForUser(appUser.id, appUser.role) : Promise.resolve(0),
   ]);
 
   return (
