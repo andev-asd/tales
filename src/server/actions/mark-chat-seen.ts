@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { db } from '@/src/lib/db';
 import { getCurrentSession } from '@/src/lib/auth';
 
@@ -18,4 +19,7 @@ export async function markOrderChatSeen(orderId: string) {
     create: { userId: user.id, orderId },
     update: { seenAt: new Date() },
   });
+
+  // Invalidate the root layout so the unread badge re-fetches on next router.refresh()
+  revalidatePath('/', 'layout');
 }
