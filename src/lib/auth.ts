@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { authModelNames } from './auth-schema';
 import { db } from './db';
 import { getEnv } from './env';
+import { sendVerificationEmail, sendPasswordResetEmail } from '@/src/server/emails/auth';
 
 export function createAuth() {
   const env = getEnv();
@@ -29,6 +30,13 @@ export function createAuth() {
     }),
     emailAndPassword: {
       enabled: true,
+      requireEmailVerification: true,
+      sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
+        await sendVerificationEmail(user.email, url);
+      },
+      sendResetPassword: async ({ user, url }: { user: { email: string }; url: string }) => {
+        await sendPasswordResetEmail(user.email, url);
+      },
     },
     socialProviders: {
       google: {
