@@ -7,6 +7,7 @@ import { mapOrderForView, mapOrderMessageForView } from '@/src/lib/customer-data
 import { OrderStatusBadge } from '@/src/components/orders/order-status-badge'
 import { OrderRealtimeChat } from '@/src/components/orders/order-realtime-chat'
 import { AdminOrderStatusForm } from '@/src/components/admin/order-status-form'
+import { TrackingNumberForm } from '@/src/components/admin/tracking-number-form'
 import { sendAdminMessage } from '@/src/server/actions/admin-orders'
 import { DashboardShell } from '@/src/components/layout/dashboard-shell'
 import { OrderStatus } from '@prisma/client'
@@ -169,6 +170,12 @@ export default async function AdminOrderDetailPage({
         <AdminOrderStatusForm
           orderId={order.id}
           currentStatus={order.status as OrderStatus}
+        />
+
+        {/* TTN form */}
+        <TrackingNumberForm
+          orderId={order.id}
+          currentTrackingNumber={order.trackingNumber ?? null}
         />
 
         {/* Chat */}
