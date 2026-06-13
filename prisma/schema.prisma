@@ -191,6 +191,7 @@ model Order {
   brief          String?
   resultTitle    String?
   resultBody     String?
+  trackingNumber String?
   customerId     String
   psychologistId String?
   taleId         String?
