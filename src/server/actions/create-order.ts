@@ -3,6 +3,7 @@
 import { getCurrentSession } from '@/src/lib/auth'
 import { db } from '@/src/lib/db'
 import { deliverySchema, type DeliveryInput } from '@/src/lib/validators/delivery'
+import { sendOrderConfirmationEmail } from '@/src/server/emails/orders'
 
 export type CreateOrderResult =
   | { ok: true; orderId: string }
@@ -77,6 +78,19 @@ export async function createOrderAction(
 
     return newOrder
   })
+
+  // Fire confirmation email — non-blocking, failure must not break the order flow
+  db.order.findUnique({
+    where: { id: order.id },
+    select: {
+      id: true,
+      customer: { select: { email: true, name: true } },
+      tale: { select: { title: true } },
+      delivery: { select: { recipientName: true, city: true } },
+    },
+  }).then((full) => {
+    if (full) sendOrderConfirmationEmail(full).catch(console.error);
+  }).catch(console.error);
 
   return { ok: true, orderId: order.id }
 }
