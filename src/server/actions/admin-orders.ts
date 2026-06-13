@@ -5,8 +5,15 @@ import { db } from '@/src/lib/db'
 import { OrderStatus } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { mapOrderMessageForView } from '@/src/lib/customer-data'
+import { sendOrderStatusEmail, sendShippingEmail } from '@/src/server/emails/orders'
 
-// Allowed transitions for admin (full control)
+const EMAIL_TRIGGER_STATUSES = new Set<OrderStatus>([
+  OrderStatus.IN_PROGRESS,
+  OrderStatus.AWAITING_CUSTOMER,
+  OrderStatus.COMPLETED,
+  OrderStatus.CANCELLED,
+])
+
 const adminTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
   NEW: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
   IN_REVIEW: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
@@ -14,42 +21,48 @@ const adminTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
   AWAITING_CUSTOMER: [OrderStatus.IN_PROGRESS, OrderStatus.COMPLETED, OrderStatus.CANCELLED],
 }
 
-export async function updateOrderStatus(orderId: string, newStatus: string) {
-  // 1. Auth — require ADMIN or SUPERADMIN role
+async function requireAdmin() {
   const session = await getCurrentSession()
-  if (!session?.user?.email) return { ok: false as const, error:'Не авторизовано' }
+  if (!session?.user?.email) return null
 
   const user = await db.user.findUnique({
     where: { email: session.user.email },
-    select: { role: true },
+    select: { id: true, role: true },
   })
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-    return { ok: false as const, error:'Доступ заборонено' }
-  }
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) return null
+  return user
+}
 
-  // 2. Validate newStatus is a valid OrderStatus
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const admin = await requireAdmin()
+  if (!admin) return { ok: false as const, error: 'Не авторизовано' }
+
   if (!Object.values(OrderStatus).includes(newStatus as OrderStatus)) {
-    return { ok: false as const, error:'Невірний статус' }
+    return { ok: false as const, error: 'Невірний статус' }
   }
 
-  // 3. Load current order status
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { status: true },
+    select: { status: true, customer: { select: { email: true } } },
   })
-  if (!order) return { ok: false as const, error:'Замовлення не знайдено' }
+  if (!order) return { ok: false as const, error: 'Замовлення не знайдено' }
 
-  // 4. Check transition is allowed
   const allowed = adminTransitions[order.status] ?? []
   if (!allowed.includes(newStatus as OrderStatus)) {
-    return { ok: false as const, error:'Недопустимий перехід статусу' }
+    return { ok: false as const, error: 'Недопустимий перехід статусу' }
   }
 
-  // 5. Update
   await db.order.update({
     where: { id: orderId },
     data: { status: newStatus as OrderStatus },
   })
+
+  if (EMAIL_TRIGGER_STATUSES.has(newStatus as OrderStatus)) {
+    sendOrderStatusEmail(
+      { id: orderId, customer: order.customer },
+      newStatus,
+    ).catch(console.error)
+  }
 
   revalidatePath(`/admin/orders/${orderId}`)
   revalidatePath('/admin/orders')
@@ -57,32 +70,51 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 }
 
 export async function sendAdminMessage(orderId: string, body: string) {
-  // 1. Auth — require ADMIN or SUPERADMIN
-  const session = await getCurrentSession()
-  if (!session?.user?.email) return { ok: false as const, error:'Не авторизовано' }
+  const admin = await requireAdmin()
+  if (!admin) return { ok: false as const, error: 'Не авторизовано' }
 
-  const user = await db.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, role: true },
-  })
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-    return { ok: false as const, error:'Доступ заборонено' }
-  }
-
-  // 2. Validate
-  if (!body || typeof body !== 'string') return { ok: false as const, error:'Повідомлення не може бути порожнім' }
+  if (!body || typeof body !== 'string') return { ok: false as const, error: 'Повідомлення не може бути порожнім' }
   const trimmed = body.trim()
-  if (!trimmed) return { ok: false as const, error:'Повідомлення не може бути порожнім' }
+  if (!trimmed) return { ok: false as const, error: 'Повідомлення не може бути порожнім' }
 
-  // 3. Check order exists
   const order = await db.order.findUnique({ where: { id: orderId }, select: { id: true } })
-  if (!order) return { ok: false as const, error:'Замовлення не знайдено' }
+  if (!order) return { ok: false as const, error: 'Замовлення не знайдено' }
 
-  // 4. Create message — Supabase Realtime Postgres Changes triggers WebSocket delivery
   const created = await db.orderMessage.create({
-    data: { orderId, authorId: user.id, body: trimmed },
+    data: { orderId, authorId: admin.id, body: trimmed },
     include: { author: true },
   })
 
   return { ok: true as const, message: mapOrderMessageForView(created) }
+}
+
+export async function setTrackingNumber(
+  orderId: string,
+  trackingNumber: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const admin = await requireAdmin()
+  if (!admin) return { ok: false, error: 'Не авторизовано' }
+
+  const trimmed = trackingNumber.trim()
+  if (!trimmed) return { ok: false, error: 'Номер ТТН не може бути порожнім' }
+
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      customer: { select: { email: true, name: true } },
+      delivery: { select: { service: true, recipientName: true } },
+    },
+  })
+  if (!order) return { ok: false, error: 'Замовлення не знайдено' }
+
+  await db.order.update({
+    where: { id: orderId },
+    data: { trackingNumber: trimmed },
+  })
+
+  sendShippingEmail(order, trimmed).catch(console.error)
+
+  revalidatePath(`/admin/orders/${orderId}`)
+  return { ok: true }
 }
