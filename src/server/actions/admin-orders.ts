@@ -102,6 +102,7 @@ export async function setTrackingNumber(
     where: { id: orderId },
     select: {
       id: true,
+      trackingNumber: true,
       customer: { select: { email: true, name: true } },
       delivery: { select: { service: true, recipientName: true } },
     },
@@ -113,7 +114,9 @@ export async function setTrackingNumber(
     data: { trackingNumber: trimmed },
   })
 
-  sendShippingEmail(order, trimmed).catch(console.error)
+  if (order.trackingNumber !== trimmed) {
+    sendShippingEmail(order, trimmed).catch(console.error)
+  }
 
   revalidatePath(`/admin/orders/${orderId}`)
   return { ok: true }

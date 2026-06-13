@@ -1,5 +1,10 @@
 import { resend, FROM_EMAIL } from '@/src/lib/resend';
 
+function esc(str: string | null | undefined): string {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 const STATUS_SUBJECTS: Partial<Record<string, string>> = {
   IN_PROGRESS: 'Ваше замовлення взято у роботу',
   AWAITING_CUSTOMER: 'Потрібна ваша відповідь — замовлення',
@@ -51,11 +56,11 @@ export async function sendOrderConfirmationEmail(order: OrderForConfirmation): P
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;color:#2d2d2d">
         <h1 style="font-size:24px;margin-bottom:8px">Своя Казка</h1>
-        <p>Вітаємо${order.customer.name ? `, ${order.customer.name}` : ''}! Ваше замовлення успішно оформлено.</p>
+        <p>Вітаємо${order.customer.name ? `, ${esc(order.customer.name)}` : ''}! Ваше замовлення успішно оформлено.</p>
         <div style="background:#f9f5f0;border-radius:8px;padding:16px;margin:20px 0">
           <p style="margin:0 0 8px"><strong>Номер замовлення:</strong> #${shortId}</p>
-          ${order.tale ? `<p style="margin:0 0 8px"><strong>Казка:</strong> ${order.tale.title}</p>` : ''}
-          ${order.delivery ? `<p style="margin:0"><strong>Отримувач:</strong> ${order.delivery.recipientName}, ${order.delivery.city}</p>` : ''}
+          ${order.tale ? `<p style="margin:0 0 8px"><strong>Казка:</strong> ${esc(order.tale.title)}</p>` : ''}
+          ${order.delivery ? `<p style="margin:0"><strong>Отримувач:</strong> ${esc(order.delivery.recipientName)}, ${esc(order.delivery.city)}</p>` : ''}
         </div>
         <p>Ми зв'яжемося з вами найближчим часом. Статус замовлення можна відстежити у вашому особистому кабінеті.</p>
         <p style="font-size:13px;color:#888;margin-top:24px">Своя Казка — терапевтичні казки для дітей</p>
@@ -98,13 +103,13 @@ export async function sendShippingEmail(order: OrderForShipping, trackingNumber:
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;color:#2d2d2d">
         <h1 style="font-size:24px;margin-bottom:8px">Своя Казка</h1>
-        <p>Вітаємо${order.customer.name ? `, ${order.customer.name}` : ''}! Ваша книга відправлена.</p>
+        <p>Вітаємо${order.customer.name ? `, ${esc(order.customer.name)}` : ''}! Ваша книга відправлена.</p>
         <div style="background:#f9f5f0;border-radius:8px;padding:16px;margin:20px 0">
-          <p style="margin:0 0 8px"><strong>Служба доставки:</strong> ${serviceLabel}</p>
-          <p style="margin:0;font-size:20px"><strong>ТТН: ${trackingNumber}</strong></p>
+          <p style="margin:0 0 8px"><strong>Служба доставки:</strong> ${esc(serviceLabel)}</p>
+          <p style="margin:0;font-size:20px"><strong>ТТН: ${esc(trackingNumber)}</strong></p>
         </div>
         ${trackingUrl ? `
-        <a href="${trackingUrl}${trackingNumber}" style="display:inline-block;background:#b86549;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px">
+        <a href="${trackingUrl}${esc(trackingNumber)}" style="display:inline-block;background:#b86549;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;margin-bottom:24px">
           Відстежити посилку
         </a>
         ` : ''}

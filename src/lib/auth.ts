@@ -31,11 +31,13 @@ export function createAuth() {
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
-      sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
-        await sendVerificationEmail(user.email, url);
-      },
       sendResetPassword: async ({ user, url }: { user: { email: string }; url: string }) => {
         await sendPasswordResetEmail(user.email, url);
+      },
+    },
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }: { user: { email: string }; url: string }) => {
+        await sendVerificationEmail(user.email, url);
       },
     },
     socialProviders: {
